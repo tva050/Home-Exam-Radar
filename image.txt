@@ -1,0 +1,49 @@
+IDL> help,/str, info
+** Structure INFO_SLC, 25 tags, length=688, data length=678:
+   FORMAT          STRING    'SLC'
+   NCHANNELS       LONG                33
+   DATATYPE        LONG                 6
+   ENDIAN          STRING    'little'
+   XSIZE           LONG               501
+   YSIZE           LONG              1759
+   XTIME           DOUBLE        0.0055118165
+   YTIME           STRING    '2011-02-15T22:40:18.137481'
+   XSAMPLEFREQ     DOUBLE           19207680.
+   YSAMPLEFREQ     DOUBLE           1686.0674
+   LEFTLOOKING     INT              0
+   STATEVECTOR     STRUCT    -> STATEVECTOR Array[1]
+   PROCFACILITY    STRING    'PDHS-E'
+   PROCSOFTWARE    STRING    'ASAR/5.04'
+   PLATFORM        STRING    'ASA'
+   PRODUCT         STRING    'WVI-IS2'
+   POLARIZATION    STRING    'VV'
+   RADARFREQ       DOUBLE       5.3310044e+09
+   DOPPLER         STRUCT    -> STRUCT_DOPPLER Array[1]
+   CALIB           STRUCT    -> STRUCT_CALIB Array[1]
+   ANTENNALENGTH   FLOAT           10.0000
+   XWINDOWFUNC     STRING    'NONE (0.750000)'
+   YWINDOWFUNC     STRING    'NONE (0.750000)'
+   XBANDWIDTH      FLOAT       1.60000e+07
+   YBANDWIDTH      FLOAT           1316.00
+
+IDL> help,/str, geo
+** Structure STRUCT_GEOMETRY, 17 tags, length=304, data length=304:
+   XPOS            DOUBLE           250.00000
+   YPOS            DOUBLE           880.00000
+   XTIME           DOUBLE        0.0055248321
+   YTIME           STRING    '2011-02-15T22:39:33.669981'
+   LATITUDE        DOUBLE           32.998848
+   LONGITUDE       DOUBLE          -11.681996
+   INCANGLE        DOUBLE           22.779148
+   LOOKANGLE       DOUBLE           20.174257
+   RELPOS          DOUBLE    Array[3]
+   RELVEL          DOUBLE    Array[3]
+   RELACC          DOUBLE    Array[3]
+   GROUNDVEL       DOUBLE           6716.7298
+   PLATFORMVEL     DOUBLE           7561.5115
+   TRACKANGLE      DOUBLE          -11.976641
+   XYZPOS          DOUBLE    Array[3]
+   EARTHNORM       DOUBLE    Array[3]
+   STATEVECTOR     STRUCT    -> STATEVECTOR Array[1]
+
+
