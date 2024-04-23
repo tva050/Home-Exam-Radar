@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 from scipy.signal import convolve2d
-from scipy.fft import fft2, fftshift, ifft2, ifftshift
+import matplotlib.colors as mcolors
+from matplotlib.colorbar import ColorbarBase
+
+
 
 
 # Paths to data and header file
@@ -216,10 +218,16 @@ def task_3B():
     for i, intensity_image in enumerate(intensity_images):
         plt.subplot(1, num_parts, i+1)
         plt.pcolormesh(intensity_image, cmap='gray')
-        plt.colorbar()
         plt.title(f'Look {i+1}')
         plt.axis('off')
-        
+    
+    # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
+    colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
+
+    # Create a Normalize instance to normalize data to [0-1] range
+    norm = mcolors.Normalize(vmin=np.min(intensity_images), vmax=np.max(intensity_images))
+    # Create a ColorbarBase instance with the 'gray' colormap
+    colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
     plt.show()
     
 #def task_4B():    
