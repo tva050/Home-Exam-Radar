@@ -255,7 +255,6 @@ def compute_spectra(intensity_images):
     
     # Compute the co-spectra
     co_spectra = [np.conj(fft_img) * fft_img for fft_img in fft_intensity_images]
-    
     # Compute the cross-spectra
     cross_spectra = [np.conj(fft_intensity_images[i]) * fft_intensity_images[j] for i in range(len(fft_intensity_images)) for j in range(i+1, len(fft_intensity_images))]
     
@@ -267,6 +266,7 @@ def compute_spectra(intensity_images):
     
     # The final result is 3 complex spectra: one co-spectrum and two cross-spectra
     complex_spectra = [co_spectrum_avg, cross_spectrum_avg]
+
     
     return complex_spectra
 def task_5B():

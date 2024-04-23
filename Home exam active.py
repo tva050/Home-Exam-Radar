@@ -263,6 +263,8 @@ def task_5B():
             else:
                 cross_spectra.append(product_spectrum)
     
+    print("Number of Co-spectra: ",len(co_spectra))
+    print("Number of Cross-spectra: ",len(cross_spectra))
     co_spectrum_avg = np.mean(co_spectra, axis=0)
     cross_spectrum_avg = np.mean(cross_spectra, axis=0)
     
@@ -271,7 +273,7 @@ def task_5B():
     plt.figure(figsize=(8, 6))
     for i, complex_spectrum in enumerate(complex_spectra):
         plt.subplot(1, 3, i+1)
-        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=0, vmax=15)
+        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=6, vmax=15)
         plt.title(f'Spectrum {i+1}')
         plt.colorbar()
         plt.axis('off')
@@ -285,6 +287,9 @@ def task_5B():
     # Create a ColorbarBase instance with the 'gray' colormap
     #colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
     plt.show()
+    
+""" ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
+
     
 if __name__ == "__main__":
     #task_0()
@@ -300,3 +305,6 @@ if __name__ == "__main__":
     #task_3B()
     #task_4B()
     task_5B()
+    
+# ______C. Analysis of 2D Spectra______ #
+    #task_1C()
