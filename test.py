@@ -245,45 +245,40 @@ def task_4B():
     # Create a ColorbarBase instance with the 'gray' colormap
     colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
     plt.show()
-    
-def task_5B():
+
+def compute_spectra(intensity_images):
+    # Normalize the intensity images
     normalized_intensity_images = [(img - np.mean(img)) / np.mean(img) for img in intensity_images]
     
+    # Compute the Fourier transforms of the normalized intensity images
     fft_intensity_images = [np.fft.fft2(img) for img in normalized_intensity_images]
     
-    co_spectra = []
-    cross_spectra = []
+    # Compute the co-spectra
+    co_spectra = [np.conj(fft_img) * fft_img for fft_img in fft_intensity_images]
     
-    for i in range(len(fft_intensity_images)):
-        for j in range(i, len(fft_intensity_images)):
-            product_spectrum = np.conj(fft_intensity_images[i]) * fft_intensity_images[j]
-            
-            if i == j:
-                co_spectra.append(product_spectrum)
-            else:
-                cross_spectra.append(product_spectrum)
+    # Compute the cross-spectra
+    cross_spectra = [np.conj(fft_intensity_images[i]) * fft_intensity_images[j] for i in range(len(fft_intensity_images)) for j in range(i+1, len(fft_intensity_images))]
     
+    # Average the co-spectra
     co_spectrum_avg = np.mean(co_spectra, axis=0)
+    
+    # Average the cross-spectra
     cross_spectrum_avg = np.mean(cross_spectra, axis=0)
     
-    complex_spectra = [co_spectrum_avg] + [cross_spectrum_avg]*2
+    # The final result is 3 complex spectra: one co-spectrum and two cross-spectra
+    complex_spectra = [co_spectrum_avg, cross_spectrum_avg]
     
+    return complex_spectra
+def task_5B():
+    complex_spectra = compute_spectra(intensity_images)
+    
+    # Plot the magnitude spectrum of the co-spectrum
     plt.figure(figsize=(8, 6))
-    for i, complex_spectrum in enumerate(complex_spectra):
-        plt.subplot(1, 3, i+1)
-        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=0, vmax=15)
-        plt.title(f'Spectrum {i+1}')
-        plt.colorbar()
-        plt.axis('off')
-    
-    # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
-    #colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
-    
-    # Create a Normalize instance to normalize data to [0-1] range
-    #norm = mcolors.Normalize(vmin=np.min(complex_spectra), vmax=np.max(complex_spectra))
-    
-    # Create a ColorbarBase instance with the 'gray' colormap
-    #colorbar = ColorbarBase(colobar_axes, cmap='gray', norm=norm, orientation='horizontal')
+    plt.pcolormesh(np.log(np.abs(complex_spectra[1])), cmap='gray')
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Magnitude Spectrum of the Co-Spectrum')
     plt.show()
     
 if __name__ == "__main__":
