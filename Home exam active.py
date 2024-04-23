@@ -14,10 +14,10 @@ Ny = 1759
 Nx = 501
 
 # constants
-f_sf = 19207680.0 # Sampling frequency in Hz
-f_prf = 1686.0674 # Pulse repetition frequency in Hz
-V = 6716.7298 # Velocity in m/s
-theta = np.deg2rad(22.779148) # Convert to radians
+f_sf = 19207680.0 # Sampling frequency in Hz (info.xsamplefreq)
+f_prf = 1686.0674 # Pulse repetition frequency in Hz (info.ysamplefreq)
+V = 6716.7298 # Velocity in m/s (geo.groundvel)
+theta = np.deg2rad(22.779148) # Convert to radians (geo.incangle)
 c = 3e8 # Speed of light in m/s
 
 
@@ -121,42 +121,72 @@ def task_3A():
     
 """ ---------------------------------- B. Look extraction and Fourier Spectral Estimation ----------------------------------- """
 
-slc_magnitude = np.sqrt(img_real**2 + img_imag**2)
+#mean_int = np.mean(np.abs(img))
+#img_normalized = img / mean_int
 
+slc_magnitude = np.sqrt(img_real**2 + img_imag**2)
 img_normalized = slc_magnitude / np.mean(slc_magnitude)
 
 img_fft = np.fft.fft2(img_normalized)
 img_fft_shifted = np.fft.fftshift(img_fft)
-mag_spec = np.log(np.abs(img_fft_shifted))
+#mag_spec = np.log(np.abs(img_fft_shifted))
 
-Ny = np.arange(0, 1759, 1)
-Nx = np.arange(0, 501, 1)
+#Ny = np.arange(1, 1759+1, 1)
+#Nx = np.arange(1, 501+1, 1)
 
-delta_x = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
-delta_y = V / f_prf # Resolution or pixel size in azimuth (y)
+Ny, Nx = img_normalized.shape
+
+dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
+dy = V / f_prf # Resolution or pixel size in azimuth (y)
+
+delta_kx = (2*np.pi) / (Nx*dx) # Resolution in kx
+delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
+
+d_kx_max = np.pi / dx
+d_ky_max = np.pi / dy
 
 
-delta_kx = (2*np.pi) / (Nx*delta_x) # Resolution in kx
-delta_ky = (2*np.pi) / (Ny*delta_y) # Resolution in ky
+d_kx_min = -d_kx_max
+d_ky_min = -d_ky_max
 
+kx = np.linspace(d_kx_min, d_kx_max, Nx)
+ky = np.linspace(d_ky_min, d_ky_max, Ny)
+Kx, Ky = np.meshgrid(kx, ky)
 
 def task_1B():
     # Print the 10 values around the center of the array
     
     plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(delta_kx, delta_ky, mag_spec, cmap="gray")
+    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray")
     plt.colorbar()
-    #plt.xlim(-0.0010, 0.0010)
-    #plt.ylim(-0.00025, 0.00025)
-    #plt.xscale("linear")
-    plt.xlabel('Frequency (radians per minute)')
-    plt.ylabel('Frequency (radians per minute)')
+    plt.xlim(-0.08, 0.08)
+    plt.ylim(-0.08, 0.08)
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
     plt.title('Magnitude Spectrum of the Image')
     plt.show()
 
-#def task_2B():
+def task_2B():
+    spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
     
+    min_azimuth = -d_ky_max
+    max_azimuth = d_ky_max
+    azimuth_freqs = np.linspace(min_azimuth, max_azimuth, Ny)
+    
+    print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
+    """ plt.figure(figsize=(8, 6))
+    plt.plot(azimuth_freqs, spec_profile_azimuth)
+    plt.xlabel('Azimuth Wavenumber [rad/m]')
+    plt.ylabel('Magnitude Spectrum')
+    plt.title('Azimuth Spectrum Profile')
+    plt.show() """
+    
+    """ is_symmetric = np.allclose(spec_profile_azimuth, spec_profile_azimuth[::-1], atol=1e-10)
+    if is_symmetric:
+        print("The spectral profile is symmetric around the zero frequency.")
+    else:
+        print("The spectral profile is shifted.") """
 
 
 
@@ -169,4 +199,5 @@ if __name__ == "__main__":
     #task_3A()
     
 # ______B. Look extraction and Fourier Spectral Estimation______ #
-    task_1B()
+    #task_1B()
+    task_2B()
