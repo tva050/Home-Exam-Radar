@@ -283,7 +283,7 @@ def task_5B():
     #norm = mcolors.Normalize(vmin=np.min(complex_spectra), vmax=np.max(complex_spectra))
     
     # Create a ColorbarBase instance with the 'gray' colormap
-    #colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
+    #colorbar = ColorbarBase(colobar_axes, cmap='gray', norm=norm, orientation='horizontal')
     plt.show()
     
 if __name__ == "__main__":
