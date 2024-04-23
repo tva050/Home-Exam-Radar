@@ -14,11 +14,11 @@ Ny = 1759
 Nx = 501
 
 # constants
-f_sf = 19207680.0
-f_prf = 1686.0674
-V = 6716.7298
-theta = np.deg2rad(22.779148)
-c = 3e8
+f_sf = 19207680.0 # Sampling frequency in Hz
+f_prf = 1686.0674 # Pulse repetition frequency in Hz
+V = 6716.7298 # Velocity in m/s
+theta = np.deg2rad(22.779148) # Convert to radians
+c = 3e8 # Speed of light in m/s
 
 
 # Read the image data as vector and reshape to image 
@@ -129,33 +129,23 @@ img_fft = np.fft.fft2(img_normalized)
 img_fft_shifted = np.fft.fftshift(img_fft)
 mag_spec = np.log(np.abs(img_fft_shifted))
 
-""" delta_x = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
+Ny = np.arange(0, 1759, 1)
+Nx = np.arange(0, 501, 1)
+
+delta_x = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
 delta_y = V / f_prf # Resolution or pixel size in azimuth (y)
 
-# N_X and N_Y are the sizes of our Fourier transformed image in range and azimuth respectively
-N_X = np.fft.fftfreq(Nx)
-print(N_X)
-N_Y = mag_spec.shape[0]
-print(N_Y)
 
-delta_kx = (2*np.pi) / (N_X*delta_x) # Resolution in kx
-delta_ky = (2*np.pi) / (N_Y*delta_y) # Resolution in ky
+delta_kx = (2*np.pi) / (Nx*delta_x) # Resolution in kx
+delta_ky = (2*np.pi) / (Ny*delta_y) # Resolution in ky
 
-x_range = np.arange(N_X) * delta_x
-y_range = np.arange(N_Y) * delta_y
- """
-NX = np.fft.fftfreq(Nx)
-NY = np.fft.fftfreq(Ny)
-
-x_range = 2*np.pi*NX
-y_range = 2*np.pi*NY
 
 def task_1B():
     # Print the 10 values around the center of the array
     
     plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(x_range, y_range, mag_spec, cmap="gray")
+    plt.pcolormesh(delta_kx, delta_ky, mag_spec, cmap="gray")
     plt.colorbar()
     #plt.xlim(-0.0010, 0.0010)
     #plt.ylim(-0.00025, 0.00025)
