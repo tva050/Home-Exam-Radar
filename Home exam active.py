@@ -156,11 +156,13 @@ ky = np.linspace(d_ky_min, d_ky_max, Ny)
 Kx, Ky = np.meshgrid(kx, ky)
 
 def task_1B():
-    # Print the 10 values around the center of the array
-    
+    """ 
+    Plots the magnitude spectrum of the image in the wavenumber domain.
+    ~ Complex valued 2D spectra
+    """
     plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray")
+    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray", shading='nearest')
     plt.colorbar()
     plt.xlim(-0.08, 0.08)
     plt.ylim(-0.08, 0.08)
@@ -169,10 +171,10 @@ def task_1B():
     plt.title('Magnitude Spectrum of the Image')
     plt.show()
 
+spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
 def task_2B():
     plt.style.use("ggplot")
     
-    spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
     print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
 
     min_azimuth = -d_ky_max
@@ -195,25 +197,39 @@ def task_2B():
     else:
         print("The spectral profile is shifted.")
 
+index_max = np.argmax(spec_profile_azimuth)
+azimuth_shift_pixels = index_max - Ny // 2
+shifted_fourier_transform_shifted_azimuth = np.roll(img_fft_shifted, shift=azimuth_shift_pixels, axis=1)
 def task_3B():
-    Ny = img_fft_shifted.shape[1]
+    print("Azimuth shift in pixels:", azimuth_shift_pixels)
     
-    num_parts = 3
-    part_size = Ny // num_parts
+    plt.figure(figsize=(8, 6))
+    plt.pcolormesh(Kx, Ky, np.log(np.abs(shifted_fourier_transform_shifted_azimuth)), cmap='gray')
+    plt.colorbar()
+    #plt.xlim(-0.08, 0.08)
+    #plt.ylim(-0.08, 0.08)
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Magnitude Spectrum of the Image with Azimuth Shift')
+    plt.show()
+    
+Ny = shifted_fourier_transform_shifted_azimuth.shape[1]
+    
+num_parts = 3
+part_size = Ny // num_parts
+intensity_images = []
 
-    intensity_images = []
+for i in range(num_parts):
+    start_idx = i*part_size
+    end_idx = (i +1) * part_size
+    complex_look = shifted_fourier_transform_shifted_azimuth[:, start_idx:end_idx]
     
-    for i in range(num_parts):
-        start_idx = i*part_size
-        end_idx = (i +1) * part_size
-        complex_look = img_fft_shifted[:, start_idx:end_idx]
-        
-        complex_image  = np.fft.ifftshift(complex_look, axes=1)
-        spatial_image = np.fft.ifft2(complex_image)
-        
-        intensity_image = np.abs(spatial_image)**2
-        intensity_images.append(intensity_image)
-        
+    complex_image  = np.fft.ifftshift(complex_look, axes=1)
+    spatial_image = np.fft.ifft2(complex_image)
+    
+    intensity_image = np.abs(spatial_image)**2
+    intensity_images.append(intensity_image)    
+def task_4B():        
     plt.figure(figsize=(8, 6))
     for i, intensity_image in enumerate(intensity_images):
         plt.subplot(1, num_parts, i+1)
@@ -230,7 +246,44 @@ def task_3B():
     colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
     plt.show()
     
-#def task_4B():    
+def task_5B():
+    normalized_intensity_images = [(img - np.mean(img)) / np.mean(img) for img in intensity_images]
+    
+    fft_intensity_images = [np.fft.fft2(img) for img in normalized_intensity_images]
+    
+    co_spectra = []
+    cross_spectra = []
+    
+    for i in range(len(fft_intensity_images)):
+        for j in range(i, len(fft_intensity_images)):
+            product_spectrum = np.conj(fft_intensity_images[i]) * fft_intensity_images[j]
+            
+            if i == j:
+                co_spectra.append(product_spectrum)
+            else:
+                cross_spectra.append(product_spectrum)
+    
+    co_spectrum_avg = np.mean(co_spectra, axis=0)
+    cross_spectrum_avg = np.mean(cross_spectra, axis=0)
+    
+    complex_spectra = [co_spectrum_avg] + [cross_spectrum_avg]*2
+    
+    plt.figure(figsize=(8, 6))
+    for i, complex_spectrum in enumerate(complex_spectra):
+        plt.subplot(1, 3, i+1)
+        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray')
+        plt.title(f'Spectrum {i+1}')
+        plt.axis('off')
+    
+    # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
+    colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
+    
+    # Create a Normalize instance to normalize data to [0-1] range
+    norm = mcolors.Normalize(vmin=np.min(complex_spectra), vmax=np.max(complex_spectra))
+    
+    # Create a ColorbarBase instance with the 'gray' colormap
+    colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
+    plt.show()
     
 if __name__ == "__main__":
     #task_0()
@@ -243,5 +296,6 @@ if __name__ == "__main__":
 # ______B. Look extraction and Fourier Spectral Estimation______ #
     #task_1B()
     #task_2B()
-    task_3B()
+    #task_3B()
     #task_4B()
+    task_5B()
