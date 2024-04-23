@@ -168,28 +168,62 @@ def task_1B():
     plt.show()
 
 def task_2B():
-    spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
+    plt.style.use("ggplot")
     
+    spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
+    print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
+
     min_azimuth = -d_ky_max
     max_azimuth = d_ky_max
+    Ny = img_fft_shifted.shape[1]
     azimuth_freqs = np.linspace(min_azimuth, max_azimuth, Ny)
     
-    print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
-    """ plt.figure(figsize=(8, 6))
-    plt.plot(azimuth_freqs, spec_profile_azimuth)
-    plt.xlabel('Azimuth Wavenumber [rad/m]')
-    plt.ylabel('Magnitude Spectrum')
-    plt.title('Azimuth Spectrum Profile')
-    plt.show() """
+    spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
     
-    """ is_symmetric = np.allclose(spec_profile_azimuth, spec_profile_azimuth[::-1], atol=1e-10)
+    plt.figure(figsize=(8, 6))
+    plt.plot(azimuth_freqs, spec_profile_azimuth_normalized)
+    plt.xlabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Spectral Profile $[Norm]$')
+    plt.title('Azimuth Spectrum Profile')
+    plt.show()
+    
+    is_symmetric = np.allclose(spec_profile_azimuth, spec_profile_azimuth[::-1], atol=1e-10)
     if is_symmetric:
         print("The spectral profile is symmetric around the zero frequency.")
     else:
-        print("The spectral profile is shifted.") """
+        print("The spectral profile is shifted.")
 
+def task_3B():
+    Ny = img_fft_shifted.shape[1]
+    
+    num_parts = 3
+    part_size = Ny // num_parts
 
-
+    intensity_images = []
+    
+    for i in range(num_parts):
+        start_idx = i*part_size
+        end_idx = (i +1) * part_size
+        complex_look = img_fft_shifted[:, start_idx:end_idx]
+        
+        complex_image  = np.fft.ifftshift(complex_look, axes=1)
+        spatial_image = np.fft.ifft2(complex_image)
+        
+        intensity_image = np.abs(spatial_image)**2
+        intensity_images.append(intensity_image)
+        
+    plt.figure(figsize=(8, 6))
+    for i, intensity_image in enumerate(intensity_images):
+        plt.subplot(1, num_parts, i+1)
+        plt.pcolormesh(intensity_image, cmap='gray')
+        plt.colorbar()
+        plt.title(f'Look {i+1}')
+        plt.axis('off')
+        
+    plt.show()
+    
+#def task_4B():    
+    
 if __name__ == "__main__":
     #task_0()
     
@@ -200,4 +234,6 @@ if __name__ == "__main__":
     
 # ______B. Look extraction and Fourier Spectral Estimation______ #
     #task_1B()
-    task_2B()
+    #task_2B()
+    task_3B()
+    #task_4B()
