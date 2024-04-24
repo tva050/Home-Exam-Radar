@@ -162,7 +162,7 @@ def task_1B():
     """
     plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray", shading='nearest')
+    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray", shading='nearest', vmin=0, vmax=15) 
     plt.colorbar()
     plt.xlim(-0.08, 0.08)
     plt.ylim(-0.08, 0.08)
@@ -257,7 +257,6 @@ def task_5B():
     for i in range(len(fft_intensity_images)):
         for j in range(i, len(fft_intensity_images)):
             product_spectrum = np.conj(fft_intensity_images[i]) * fft_intensity_images[j]
-            
             if i == j:
                 co_spectra.append(product_spectrum)
             else:
@@ -266,16 +265,31 @@ def task_5B():
     print("Number of Co-spectra: ",len(co_spectra))
     print("Number of Cross-spectra: ",len(cross_spectra))
     co_spectrum_avg = np.mean(co_spectra, axis=0)
+    #co_spectrum_avg = np.roll(co_spectrum_avg, shift=azimuth_shift_pixels, axis=0)
+    co_spectrum_avg = np.fft.fftshift(co_spectrum_avg, axes=(0,1))
+    
     cross_spectrum_avg = np.mean(cross_spectra, axis=0)
+    #cross_spectrum_avg = np.roll(cross_spectrum_avg, shift=azimuth_shift_pixels, axis=0)
+    cross_spectrum_avg = np.fft.fftshift(cross_spectrum_avg, axes=(0,1))
     
     complex_spectra = [co_spectrum_avg] + [cross_spectrum_avg]*2
+    #complex_spectra = np.roll(complex_spectra, shift=azimuth_shift_pixels, axis=1)
+    
+    """ plt.pcolormesh(np.log(np.abs(complex_spectra[0])), cmap='gray', vmin=6, vmax=15, shading="gouraud")
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Co-spectrum')
+    plt.show() """
     
     plt.figure(figsize=(8, 6))
     for i, complex_spectrum in enumerate(complex_spectra):
         plt.subplot(1, 3, i+1)
-        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=6, vmax=15)
+        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=6, vmax=15, shading="gouraud")
         plt.title(f'Spectrum {i+1}')
         plt.colorbar()
+        plt.xlabel(r'Range Wavenumber $[rad/m]$')
+        plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
         plt.axis('off')
     
     # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
@@ -290,7 +304,9 @@ def task_5B():
     
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 
-    
+def task_1C():
+    pass
+
 if __name__ == "__main__":
     #task_0()
     
@@ -304,7 +320,7 @@ if __name__ == "__main__":
     #task_2B()
     #task_3B()
     #task_4B()
-    task_5B()
+    #task_5B()
     
 # ______C. Analysis of 2D Spectra______ #
     #task_1C()
