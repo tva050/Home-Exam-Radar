@@ -123,20 +123,14 @@ def task_3A():
     
 """ ---------------------------------- B. Look extraction and Fourier Spectral Estimation ----------------------------------- """
 
-#mean_int = np.mean(np.abs(img))
-#img_normalized = img / mean_int
+img_int = np.mean(img)
+img_normalized = img / img_int
 
-slc_magnitude = np.sqrt(img_real**2 + img_imag**2)
-img_normalized = slc_magnitude / np.mean(slc_magnitude)
 
 img_fft = np.fft.fft2(img_normalized)
 img_fft_shifted = np.fft.fftshift(img_fft)
-#mag_spec = np.log(np.abs(img_fft_shifted))
+img_spec = np.abs(img_fft_shifted)
 
-#Ny = np.arange(1, 1759+1, 1)
-#Nx = np.arange(1, 501+1, 1)
-
-Ny, Nx = img_normalized.shape
 
 dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
 dy = V / f_prf # Resolution or pixel size in azimuth (y)
@@ -147,56 +141,48 @@ delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
 d_kx_max = np.pi / dx
 d_ky_max = np.pi / dy
 
-
-d_kx_min = -d_kx_max
-d_ky_min = -d_ky_max
-
-kx = np.linspace(d_kx_min, d_kx_max, Nx)
-ky = np.linspace(d_ky_min, d_ky_max, Ny)
-Kx, Ky = np.meshgrid(kx, ky)
+kx = np.linspace(-d_kx_max, d_kx_max, Nx)
+ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
 
 def task_1B():
     """ 
-    Plots the magnitude spectrum of the image in the wavenumber domain.
+    Plots the magnitude spectrum of the image in the Fourier/Freq domain.
     ~ Complex valued 2D spectra
     """
     plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray", shading='nearest', vmin=0, vmax=15) 
+    plt.pcolor(kx, ky, img_spec, cmap='gray')
     plt.colorbar()
-    plt.xlim(-0.08, 0.08)
-    plt.ylim(-0.08, 0.08)
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.title('Magnitude Spectrum of the Image')
+    plt.title('Spectrum of the Image')
     plt.show()
 
 spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
 def task_2B():
+    """ 
+    Plots the azimuth profile of the spectral profile.
+    ~ Azimuth Spectral Profile
+    """
     plt.style.use("ggplot")
     
-    print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
     freqs = np.fft.fftfreq(Ny, d=1/f_prf)
-    #min_azimuth = -d_ky_max
-    #max_azimuth = d_ky_max
-    #Ny = img_fft_shifted.shape[1]
-    #azimuth_freqs = np.linspace(min_azimuth, max_azimuth, Ny)
+    freqs = np.fft.fftshift(freqs)
     
     spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
     
     plt.figure(figsize=(8, 6))
-    #plt.plot(azimuth_freqs, spec_profile_azimuth_normalized)
     plt.plot(freqs, spec_profile_azimuth_normalized)
-    plt.xlabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.ylabel(r'Azimuth Spectral Profile $[Norm]$')
-    plt.title('Azimuth Spectrum Profile')
+    plt.xlabel(r'Azimuth Frequency $[Hz]$')
+    plt.ylabel(r'Intensity $[Norm]$')
+    plt.title('Azimuth Fourier Domain')
     plt.show()
     
     is_symmetric = np.allclose(spec_profile_azimuth, spec_profile_azimuth[::-1], atol=1e-10)
     if is_symmetric:
         print("The spectral profile is symmetric around the zero frequency.")
     else:
-        print("The spectral profile is shifted.")
+        print("----|The spectral profile is shifted|----")
 
 index_max = np.argmax(spec_profile_azimuth)
 azimuth_shift_pixels = index_max - Ny // 2
@@ -205,7 +191,7 @@ def task_3B():
     print("Azimuth shift in pixels:", azimuth_shift_pixels)
     
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(Kx, Ky, np.log(np.abs(shifted_fourier_transform_shifted_azimuth)), cmap='gray')
+    plt.pcolormesh(kx, ky, np.abs(shifted_fourier_transform_shifted_azimuth), cmap='gray')
     plt.colorbar()
     #plt.xlim(-0.08, 0.08)
     #plt.ylim(-0.08, 0.08)
@@ -230,7 +216,8 @@ for i in range(num_parts):
     
     intensity_image = np.abs(spatial_image)**2
     intensity_images.append(intensity_image)    
-def task_4B():        
+def task_4B():
+      
     plt.figure(figsize=(8, 6))
     for i, intensity_image in enumerate(intensity_images):
         plt.subplot(1, num_parts, i+1)
@@ -357,8 +344,8 @@ if __name__ == "__main__":
     
 # ______B. Look extraction and Fourier Spectral Estimation______ #
     #task_1B()
-    task_2B()
-    #task_3B()
+    #task_2B()
+    task_3B()
     #task_4B()
     #task_5B()
     

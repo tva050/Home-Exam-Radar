@@ -24,3 +24,29 @@ dat = np.fromfile(data_file, dtype=np.csingle)
 img = dat.reshape(Ny, Nx)
 
 
+img_mean_intensity = np.mean(img)
+img_norm = img / img_mean_intensity
+
+fft_img = np.fft.fft2(img_norm)
+fft_img_shifted = np.fft.fftshift(fft_img)
+img_spec = np.abs(fft_img_shifted)
+
+dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
+dy = V / f_prf # Resolution or pixel size in azimuth (y)
+
+d_kx = (2*np.pi) / (Nx*dx)
+d_ky = (2*np.pi) / (Ny*dy)
+print(d_kx, d_ky)
+
+d_kx_max = np.pi / dx
+d_ky_max = np.pi / dy
+print(d_kx_max, d_ky_max)
+
+Kx = np.linspace(-d_kx_max, d_kx_max, 501)
+Ky = np.linspace(-d_ky_max, d_ky_max, 1759)
+
+plt.pcolormesh(Kx, Ky, img_spec, cmap='gray')
+#plt.xlim(-0.4, 0.4)
+#plt.ylim(-0.6, 0.7)
+plt.colorbar()
+plt.show()
