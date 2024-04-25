@@ -176,16 +176,17 @@ def task_2B():
     plt.style.use("ggplot")
     
     print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
-
-    min_azimuth = -d_ky_max
-    max_azimuth = d_ky_max
-    Ny = img_fft_shifted.shape[1]
-    azimuth_freqs = np.linspace(min_azimuth, max_azimuth, Ny)
+    freqs = np.fft.fftfreq(Ny, d=1/f_prf)
+    #min_azimuth = -d_ky_max
+    #max_azimuth = d_ky_max
+    #Ny = img_fft_shifted.shape[1]
+    #azimuth_freqs = np.linspace(min_azimuth, max_azimuth, Ny)
     
     spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
     
     plt.figure(figsize=(8, 6))
-    plt.plot(azimuth_freqs, spec_profile_azimuth_normalized)
+    #plt.plot(azimuth_freqs, spec_profile_azimuth_normalized)
+    plt.plot(freqs, spec_profile_azimuth_normalized)
     plt.xlabel(r'Azimuth Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Spectral Profile $[Norm]$')
     plt.title('Azimuth Spectrum Profile')
@@ -305,7 +306,46 @@ def task_5B():
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 
 def task_1C():
-    pass
+    Ny, Nx = shifted_fourier_transform_shifted_azimuth.shape
+    
+    shifted_spectrum = np.fft.fftshift(shifted_fourier_transform_shifted_azimuth)
+    
+    
+    # plot only on surface plot 
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    X, Y = np.meshgrid(kx, ky)
+    ax.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
+    ax.set_title('Magnitude Spectrum')
+    ax.set_xlabel('Range Wavenumber $[rad/m]$')
+    ax.set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    ax.set_zlabel('Magnitude')
+    plt.show()
+    """  fig = plt.figure(figsize=(10, 5))
+    ax1 = fig.add_subplot(1, 3, 1, projection='3d')
+    X, Y = np.meshgrid(kx, ky)
+    ax1.plot_surface(X, Y, np.real(shifted_spectrum), cmap='viridis')
+    ax1.set_title('Magnitude Spectrum')
+    ax1.set_xlabel('Range Wavenumber $[rad/m]$')
+    ax1.set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    ax1.set_zlabel('Magnitude')
+    
+    ax2 = fig.add_subplot(1, 3, 2, projection='3d')
+    ax2.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
+    ax2.set_title('Phase Spectrum')
+    ax2.set_xlabel('Range Wavenumber $[rad/m]$')
+    ax2.set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    ax2.set_zlabel('Phase')
+    
+    ax3 = fig.add_subplot(1, 3, 3, projection='3d')
+    ax3.plot_surface(X, Y, np.angle(shifted_spectrum), cmap='viridis')
+    ax3.set_title('Phase Spectrum')
+    ax3.set_xlabel('Range Wavenumber $[rad/m]$')
+    ax3.set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    ax3.set_zlabel('Phase')
+    
+    plt.show() """
+    
 
 if __name__ == "__main__":
     #task_0()
@@ -317,7 +357,7 @@ if __name__ == "__main__":
     
 # ______B. Look extraction and Fourier Spectral Estimation______ #
     #task_1B()
-    #task_2B()
+    task_2B()
     #task_3B()
     #task_4B()
     #task_5B()
