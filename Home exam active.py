@@ -232,38 +232,35 @@ def task_4B():
     colorbar = ColorbarBase(colorbar_axes, cmap='gray', orientation="horizontal", norm=norm) 
     
     plt.show()
-    
+
+mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
+mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
+mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
+normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
+print(normalized_intensity1.shape, "normalized_intensity1")
+normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
+normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
+
+fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
+fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
+fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
+
+""" 
+Co-spectrum: sub1*sub1, sub2*sub2, sub3*sub3
+Cross-spectrum: sub1*sub2, sub2*sub3, sub1*sub3
+"""
+
+co_spectrum1_1 = fourier_tr1 * fourier_tr1 # Co-spectrum 1*1
+co_spectrum2_2 = fourier_tr2 * fourier_tr2 # Co-spectrum 2*2
+co_spectrum3_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 3*3
+
+cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
+cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
+cross_spectrum1_3 = fourier_tr1 * fourier_tr3 # Cross-spectrum 1-3
+
+avg_co_spectrum = (co_spectrum1_1 + co_spectrum2_2 + co_spectrum3_3) / 3
+avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
 def task_5B():
-    mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
-    mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
-    mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
-
-
-    normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
-    print(normalized_intensity1.shape, "normalized_intensity1")
-    normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
-    normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
-    
-    
-    fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
-    fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
-    fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
-
-    #Co-spectrum: sub1*sub1, sub2*sub2, sub3*sub3
-    #Cross-spectrum: sub1*sub2, sub2*sub3, sub1*sub3
-    
-    co_spectrum1_1 = fourier_tr1 * fourier_tr1 # Co-spectrum 1*1
-    co_spectrum2_2 = fourier_tr2 * fourier_tr2 # Co-spectrum 2*2
-    co_spectrum3_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 3*3
-
-    
-    cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
-    cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
-    cross_spectrum1_3 = fourier_tr1 * fourier_tr3 # Cross-spectrum 1-3
-
-    avg_co_spectrum = (co_spectrum1_1 + co_spectrum2_2 + co_spectrum3_3) / 3
-    avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
-    
     mag_cross_spectrum1_3 = np.abs(cross_spectrum1_3)
     phase_cross_spectrum1_3 = np.angle(cross_spectrum2_3)
 
@@ -281,22 +278,29 @@ def task_5B():
     kx = np.linspace(-d_kx_max, d_kx_max, Nx)
     ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
     
-    figure, axes = plt.subplots(1, 3, figsize=(12, 6))
+    figure, axes = plt.subplots(1, 3, figsize=(8, 6))
     axes[0].pcolormesh(kx, ky, np.log(np.abs(avg_co_spectrum)), cmap='gray', shading='nearest')
+    axes[0].set_ylim(-0.1, 0.1)
     axes[0].set_title('Co-spectrum')
-    axes[0].set_xlabel('Range Wavenumber $[rad/m]$')
-    axes[0].set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    axes[0].set_xlabel(r'$k_x$ $[rad/m]$')
+    axes[0].set_ylabel(r'$k_y$ $[rad/m]$')
     
     axes[1].pcolormesh(kx, ky, np.log(np.abs(avg_cross_spectrum)), cmap='gray', shading='nearest')
+    axes[1].set_ylim(-0.1, 0.1)
+    axes[1].tick_params(axis='y', which='both', left=True, labelleft=False)
     axes[1].set_title('Cross-spectrum')
-    axes[1].set_xlabel('Range Wavenumber $[rad/m]$')
-    axes[1].set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    axes[1].set_xlabel(r'$k_y$ $[rad/m]$')
     
     axes[2].pcolormesh(kx, ky, np.log(np.abs(cross_spectrum1_3)), cmap='gray', shading='nearest')
-    axes[2].set_title('Magnitude of Cross-spectrum')
-    axes[2].set_xlabel('Range Wavenumber $[rad/m]$')
-    axes[2].set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    axes[2].set_ylim(-0.1, 0.1)
+    axes[2].tick_params(axis='y', which='both', left=True, labelleft=False)
+    axes[2].set_title(r'sub1$\times$sub3')
+    axes[2].set_xlabel(r'$k_y$ $[rad/m]$')
     
+    # make one colorbar for all subplots, and place to the right of the last plot 
+    cbar_ax = figure.add_axes([0.92, 0.115, 0.02, 0.81])
+    cbar = figure.colorbar(axes[0].pcolormesh(kx, ky, np.log(np.abs(avg_co_spectrum)), cmap='gray', shading='nearest'), cax=cbar_ax)
+   
     plt.tight_layout()
     plt.show()   
     
@@ -304,46 +308,10 @@ def task_5B():
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 
 def task_1C():
-    Ny, Nx = shifted_img_fft.shape
+    azimuth_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[0]))
+    range_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[1]))
     
-    shifted_spectrum = np.fft.fftshift(shifted_img_fft)
-    
-    
-    # plot only on surface plot 
-    """ fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection='3d')
-    X, Y = np.meshgrid(kx, ky)
-    ax.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
-    ax.set_title('Magnitude Spectrum')
-    ax.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax.set_zlabel('Magnitude')
-    plt.show() """
-    fig = plt.figure(figsize=(10, 5))
-    ax1 = fig.add_subplot(1, 3, 1, projection='3d')
-    X, Y = np.meshgrid(kx, ky)
-    ax1.plot_surface(X, Y, np.real(shifted_spectrum), cmap='viridis')
-    ax1.set_title('Magnitude Spectrum')
-    ax1.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax1.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax1.set_zlabel('Magnitude')
-    
-    ax2 = fig.add_subplot(1, 3, 2, projection='3d')
-    ax2.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
-    ax2.set_title('Phase Spectrum')
-    ax2.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax2.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax2.set_zlabel('Phase')
-    
-    ax3 = fig.add_subplot(1, 3, 3, projection='3d')
-    ax3.plot_surface(X, Y, np.angle(shifted_spectrum), cmap='viridis')
-    ax3.set_title('Phase Spectrum')
-    ax3.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax3.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax3.set_zlabel('Phase')
-    
-    plt.show()
-    
+    fig
 
 if __name__ == "__main__":
     #task_0()
@@ -358,7 +326,7 @@ if __name__ == "__main__":
     #task_2B()
     #task_3B()
     #task_4B()
-    task_5B()
+    #task_5B()
     
 # ______C. Analysis of 2D Spectra______ #
-    #task_1C()
+    task_1C()

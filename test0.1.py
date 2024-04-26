@@ -279,6 +279,8 @@ def task_5B():
 
     dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
     dy = V / f_prf # Resolution or pixel size in azimuth (y)
+    print(dx*Nx)
+    print(dy*Ny)
 
     delta_kx = (2*np.pi) / (Nx*dx) # Resolution in kx
     delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
@@ -290,7 +292,7 @@ def task_5B():
     ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
 
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(kx,ky,np.log(np.abs(avg_co_spectrum)), cmap='gray')
+    plt.pcolormesh(np.log(np.abs(avg_co_spectrum)), cmap='gray')
     plt.colorbar()
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
