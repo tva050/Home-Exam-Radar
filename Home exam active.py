@@ -234,60 +234,72 @@ def task_4B():
     plt.show()
     
 def task_5B():
-    normalized_intensity_images = [(img - np.mean(img)) / np.mean(img) for img in intensity_images]
+    mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
+    mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
+    mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
+
+
+    normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
+    print(normalized_intensity1.shape, "normalized_intensity1")
+    normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
+    normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
     
-    fft_intensity_images = [np.fft.fft2(img) for img in normalized_intensity_images]
     
-    co_spectra = []
-    cross_spectra = []
+    fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
+    fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
+    fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
+
+    #Co-spectrum: sub1*sub1, sub2*sub2, sub3*sub3
+    #Cross-spectrum: sub1*sub2, sub2*sub3, sub1*sub3
     
-    for i in range(len(fft_intensity_images)):
-        for j in range(i, len(fft_intensity_images)):
-            product_spectrum = np.conj(fft_intensity_images[i]) * fft_intensity_images[j]
-            if i == j:
-                co_spectra.append(product_spectrum)
-            else:
-                cross_spectra.append(product_spectrum)
+    co_spectrum1_1 = fourier_tr1 * fourier_tr1 # Co-spectrum 1*1
+    co_spectrum2_2 = fourier_tr2 * fourier_tr2 # Co-spectrum 2*2
+    co_spectrum3_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 3*3
+
     
-    print("Number of Co-spectra: ",len(co_spectra))
-    print("Number of Cross-spectra: ",len(cross_spectra))
-    co_spectrum_avg = np.mean(co_spectra, axis=0)
-    #co_spectrum_avg = np.roll(co_spectrum_avg, shift=azimuth_shift_pixels, axis=0)
-    co_spectrum_avg = np.fft.fftshift(co_spectrum_avg, axes=(0,1))
+    cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
+    cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
+    cross_spectrum1_3 = fourier_tr1 * fourier_tr3 # Cross-spectrum 1-3
+
+    avg_co_spectrum = (co_spectrum1_1 + co_spectrum2_2 + co_spectrum3_3) / 3
+    avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
     
-    cross_spectrum_avg = np.mean(cross_spectra, axis=0)
-    #cross_spectrum_avg = np.roll(cross_spectrum_avg, shift=shifted_azimuth_pixels, axis=0)
-    #cross_spectrum_avg = np.fft.fftshift(cross_spectrum_avg, axes=(0,1))
+    mag_cross_spectrum1_3 = np.abs(cross_spectrum1_3)
+    phase_cross_spectrum1_3 = np.angle(cross_spectrum2_3)
+
+    Ny, Nx = normalized_intensity1.shape
+
+    dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
+    dy = V / f_prf # Resolution or pixel size in azimuth (y)
+
+    delta_kx = (2*np.pi) / (Nx*dx) # Resolution in kx
+    delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
+
+    d_kx_max = np.pi / dx
+    d_ky_max = np.pi / dy
+
+    kx = np.linspace(-d_kx_max, d_kx_max, Nx)
+    ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
     
-    complex_spectra = [co_spectrum_avg] + [cross_spectrum_avg]*2
-    #complex_spectra = np.roll(complex_spectra, shift=azimuth_shift_pixels, axis=1)
+    figure, axes = plt.subplots(1, 3, figsize=(12, 6))
+    axes[0].pcolormesh(kx, ky, np.log(np.abs(avg_co_spectrum)), cmap='gray', shading='nearest')
+    axes[0].set_title('Co-spectrum')
+    axes[0].set_xlabel('Range Wavenumber $[rad/m]$')
+    axes[0].set_ylabel('Azimuth Wavenumber $[rad/m]$')
     
-    """ plt.pcolormesh(np.log(np.abs(complex_spectra[0])), cmap='gray', vmin=6, vmax=15, shading="gouraud")
-    plt.colorbar()
-    plt.xlabel(r'Range Wavenumber $[rad/m]$')
-    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.title('Co-spectrum')
-    plt.show() """
+    axes[1].pcolormesh(kx, ky, np.log(np.abs(avg_cross_spectrum)), cmap='gray', shading='nearest')
+    axes[1].set_title('Cross-spectrum')
+    axes[1].set_xlabel('Range Wavenumber $[rad/m]$')
+    axes[1].set_ylabel('Azimuth Wavenumber $[rad/m]$')
     
-    plt.figure(figsize=(8, 6))
-    for i, complex_spectrum in enumerate(complex_spectra):
-        plt.subplot(1, 3, i+1)
-        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=6, vmax=15, shading="gouraud")
-        plt.title(f'Spectrum {i+1}')
-        plt.colorbar()
-        plt.xlabel(r'Range Wavenumber $[rad/m]$')
-        plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-        plt.axis('off')
+    axes[2].pcolormesh(kx, ky, np.log(np.abs(cross_spectrum1_3)), cmap='gray', shading='nearest')
+    axes[2].set_title('Magnitude of Cross-spectrum')
+    axes[2].set_xlabel('Range Wavenumber $[rad/m]$')
+    axes[2].set_ylabel('Azimuth Wavenumber $[rad/m]$')
     
-    # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
-    #colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
+    plt.tight_layout()
+    plt.show()   
     
-    # Create a Normalize instance to normalize data to [0-1] range
-    #norm = mcolors.Normalize(vmin=np.min(complex_spectra), vmax=np.max(complex_spectra))
-    
-    # Create a ColorbarBase instance with the 'gray' colormap
-    #colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
-    plt.show()
     
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 

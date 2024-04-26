@@ -250,13 +250,24 @@ def task_5B():
     fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
     fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
 
-    co_spectrum1_2 = np.conj(fourier_tr1) * fourier_tr2
-    co_spectrum2_3 = np.conj(fourier_tr2) * fourier_tr3
-    co_spectrum1_3 = np.conj(fourier_tr1) * fourier_tr3
+    """ 
+    Co-spectrum:
+    - 1 and 1 
+    - 2 and 2
+    - 3 and 3
+    Cross-spectrum:
+    - 1 and 2
+    - 2 and 3
+    - 1 and 3
+    """
+    
+    co_spectrum1_2 = fourier_tr1 * fourier_tr1 # Co-spectrum 1-2
+    co_spectrum2_3 = fourier_tr2 * fourier_tr2 # Co-spectrum 2-3
+    co_spectrum1_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 1-3
 
     
-    cross_spectrum1_2 = np.conj(fourier_tr1) * fourier_tr2
-    cross_spectrum2_3 = np.conj(fourier_tr2) * fourier_tr3
+    cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
+    cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
 
     avg_co_spectrum = (co_spectrum1_2 + co_spectrum2_3 + co_spectrum1_3) / 3
     avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
@@ -264,19 +275,32 @@ def task_5B():
     magnitude_co_spectrum1_3 = np.abs(co_spectrum1_3)
     phase_co_spectrum1_3 = np.angle(co_spectrum1_3)
 
+    Ny, Nx = normalized_intensity1.shape
+
+    dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
+    dy = V / f_prf # Resolution or pixel size in azimuth (y)
+
+    delta_kx = (2*np.pi) / (Nx*dx) # Resolution in kx
+    delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
+
+    d_kx_max = np.pi / dx
+    d_ky_max = np.pi / dy
+
+    kx = np.linspace(-d_kx_max, d_kx_max, Nx)
+    ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
 
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(np.log(np.abs(avg_co_spectrum)), cmap='gray')
+    plt.pcolormesh(kx,ky,np.log(np.abs(avg_co_spectrum)), cmap='gray')
     plt.colorbar()
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
     plt.title('Co-Spectrum')
-    plt.xlim(40, 140)
-    plt.ylim(780,980)
+    #plt.xlim(40, 140)
+    #plt.ylim(780,980)
     plt.show()
 
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(np.log(np.abs(avg_cross_spectrum)), cmap='gray')
+    plt.pcolormesh(kx,ky,np.log(np.abs(avg_cross_spectrum)), cmap='gray')
     plt.colorbar()
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
@@ -284,7 +308,7 @@ def task_5B():
     plt.show()
     
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(np.log(np.abs(magnitude_co_spectrum1_3)), cmap='gray')
+    plt.pcolormesh(kx,ky, np.log(np.abs(magnitude_co_spectrum1_3)), cmap='gray')
     plt.colorbar()
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
