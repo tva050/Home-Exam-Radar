@@ -3,6 +3,7 @@ import numpy as np
 from scipy.signal import convolve2d
 import matplotlib.colors as mcolors
 from matplotlib.colorbar import ColorbarBase
+import cv2
 
 
 
@@ -149,7 +150,7 @@ def task_1B():
     Plots the magnitude spectrum of the image in the Fourier/Freq domain.
     ~ Complex valued 2D spectra
     """
-    plt.style.use("ggplot")
+    #plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
     plt.pcolor(kx, ky, img_spec, cmap='gray')
     plt.colorbar()
@@ -157,7 +158,6 @@ def task_1B():
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
     plt.title('Spectrum of the Image')
     plt.show()
-    
 
 spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
 def task_2B():
@@ -184,23 +184,113 @@ def task_2B():
         print("The spectral profile is symmetric around the zero frequency.")
     else:
         print("----|The spectral profile is shifted|----")
-        #print it is shifted by the amount of pixels
-        print("Shifted by: ", np.argmax(spec_profile_azimuth))
+        # find the amount of shift
+        print("Shifted by: ", np.argmax(spec_profile_azimuth) - Ny // 2)
 
-#spec_profile = np.mean(img_fft_shifted, axis=0)
-max_index = np.argmax(spec_profile_azimuth)
-azimuth_shift = len(spec_profile_azimuth) // 2 
 
-shifted_img_fft = np.roll(img_fft_shifted, -azimuth_shift, axis=0)
+azimuth_shift = len(spec_profile_azimuth) // 2
 
+shifted_img_fft = np.roll(img_fft_shifted, shift=-azimuth_shift, axis=0)
 def task_3B():
+    print("Azimuth shift in pixels:", shifted_img_fft)
     
+    plt.figure(figsize=(8, 6))
     plt.pcolormesh(kx, ky, np.abs(shifted_img_fft), cmap='gray')
     plt.colorbar()
-    plt.xlabel("Range (pixels)")
-    plt.ylabel("Azimuth (pixels)")
-    plt.title("Shifted Image")
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Spectrum of the Image with Azimuth Shift')
+    plt.show()
+    
+Ny = shifted_img_fft.shape[1]
+print(shifted_img_fft.shape)
+num_parts = 3
+part_size = Ny // num_parts
+intensity_images = []
+
+for i in range(num_parts):
+    start_idx = i*part_size
+    end_idx = (i+1) * part_size
+    complex_look = shifted_img_fft[:, start_idx:end_idx]
+    
+    complex_image  = np.fft.ifftshift(complex_look, axes=0)
+    spatial_image = np.fft.ifft2(complex_image)
+    
+    intensity_image = np.abs(spatial_image)
+    intensity_images.append(intensity_image)    
+def task_4B():
+        
+    plt.figure(figsize=(8, 6))
+    for i, intensity_image in enumerate(intensity_images):
+        plt.subplot(1, num_parts, i+1)
+        plt.pcolormesh(intensity_image, cmap='gray')
+        plt.title(f'Look {i+1}')
+        #plt.colorbar()
+        plt.axis('off')
+    
+    colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
+    norm = mcolors.Normalize(vmin=np.min(intensity_images), vmax=np.max(intensity_images))
+    colorbar = ColorbarBase(colorbar_axes, cmap='gray', orientation="horizontal", norm=norm) 
+    
+    plt.show()
+    
+def task_5B():
+    mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
+    mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
+    mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
+
+
+    normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
+    print(normalized_intensity1.shape, "normalized_intensity1")
+    normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
+    normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
+    
+    
+    fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
+    fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
+    fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
+
+    co_spectrum1_2 = np.conj(fourier_tr1) * fourier_tr2
+    co_spectrum2_3 = np.conj(fourier_tr2) * fourier_tr3
+    co_spectrum1_3 = np.conj(fourier_tr1) * fourier_tr3
+
+    
+    cross_spectrum1_2 = np.conj(fourier_tr1) * fourier_tr2
+    cross_spectrum2_3 = np.conj(fourier_tr2) * fourier_tr3
+
+    avg_co_spectrum = (co_spectrum1_2 + co_spectrum2_3 + co_spectrum1_3) / 3
+    avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
+    
+    magnitude_co_spectrum1_3 = np.abs(co_spectrum1_3)
+    phase_co_spectrum1_3 = np.angle(co_spectrum1_3)
+
+
+    plt.figure(figsize=(8, 6))
+    plt.pcolormesh(np.log(np.abs(avg_co_spectrum)), cmap='gray')
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Co-Spectrum')
+    plt.xlim(40, 140)
+    plt.ylim(780,980)
     plt.show()
 
-#task_2B()
-task_3B()
+    plt.figure(figsize=(8, 6))
+    plt.pcolormesh(np.log(np.abs(avg_cross_spectrum)), cmap='gray')
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Cross-Spectrum')
+    plt.show()
+    
+    plt.figure(figsize=(8, 6))
+    plt.pcolormesh(np.log(np.abs(magnitude_co_spectrum1_3)), cmap='gray')
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Magnitude of Co-Spectrum')
+    plt.show()
+    
+    
+    
+task_5B()

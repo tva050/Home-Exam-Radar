@@ -188,7 +188,7 @@ def task_2B():
 
 
 azimuth_shift = len(spec_profile_azimuth) // 2
-
+shifted_azimuth_pixels = np.argmax(spec_profile_azimuth) - Ny // 2
 shifted_img_fft = np.roll(img_fft_shifted, shift=-azimuth_shift, axis=0)
 def task_3B():
     print("Azimuth shift in pixels:", shifted_img_fft)
@@ -215,7 +215,7 @@ for i in range(num_parts):
     complex_image  = np.fft.ifftshift(complex_look, axes=0)
     spatial_image = np.fft.ifft2(complex_image)
     
-    intensity_image = np.abs(spatial_image)**2
+    intensity_image = np.abs(spatial_image)
     intensity_images.append(intensity_image)    
 def task_4B():
         
@@ -224,16 +224,13 @@ def task_4B():
         plt.subplot(1, num_parts, i+1)
         plt.pcolormesh(intensity_image, cmap='gray')
         plt.title(f'Look {i+1}')
-        plt.colorbar()
+        #plt.colorbar()
         plt.axis('off')
     
-    """ # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
     colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
-
-    # Create a Normalize instance to normalize data to [0-1] range
     norm = mcolors.Normalize(vmin=np.min(intensity_images), vmax=np.max(intensity_images))
-    # Create a ColorbarBase instance with the 'gray' colormap
-    colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal') """
+    colorbar = ColorbarBase(colorbar_axes, cmap='gray', orientation="horizontal", norm=norm) 
+    
     plt.show()
     
 def task_5B():
@@ -259,8 +256,8 @@ def task_5B():
     co_spectrum_avg = np.fft.fftshift(co_spectrum_avg, axes=(0,1))
     
     cross_spectrum_avg = np.mean(cross_spectra, axis=0)
-    #cross_spectrum_avg = np.roll(cross_spectrum_avg, shift=azimuth_shift_pixels, axis=0)
-    cross_spectrum_avg = np.fft.fftshift(cross_spectrum_avg, axes=(0,1))
+    #cross_spectrum_avg = np.roll(cross_spectrum_avg, shift=shifted_azimuth_pixels, axis=0)
+    #cross_spectrum_avg = np.fft.fftshift(cross_spectrum_avg, axes=(0,1))
     
     complex_spectra = [co_spectrum_avg] + [cross_spectrum_avg]*2
     #complex_spectra = np.roll(complex_spectra, shift=azimuth_shift_pixels, axis=1)
@@ -295,13 +292,13 @@ def task_5B():
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 
 def task_1C():
-    Ny, Nx = shifted_fourier_transform_shifted_azimuth.shape
+    Ny, Nx = shifted_img_fft.shape
     
-    shifted_spectrum = np.fft.fftshift(shifted_fourier_transform_shifted_azimuth)
+    shifted_spectrum = np.fft.fftshift(shifted_img_fft)
     
     
     # plot only on surface plot 
-    fig = plt.figure(figsize=(8, 6))
+    """ fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(111, projection='3d')
     X, Y = np.meshgrid(kx, ky)
     ax.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
@@ -309,8 +306,8 @@ def task_1C():
     ax.set_xlabel('Range Wavenumber $[rad/m]$')
     ax.set_ylabel('Azimuth Wavenumber $[rad/m]$')
     ax.set_zlabel('Magnitude')
-    plt.show()
-    """  fig = plt.figure(figsize=(10, 5))
+    plt.show() """
+    fig = plt.figure(figsize=(10, 5))
     ax1 = fig.add_subplot(1, 3, 1, projection='3d')
     X, Y = np.meshgrid(kx, ky)
     ax1.plot_surface(X, Y, np.real(shifted_spectrum), cmap='viridis')
@@ -333,7 +330,7 @@ def task_1C():
     ax3.set_ylabel('Azimuth Wavenumber $[rad/m]$')
     ax3.set_zlabel('Phase')
     
-    plt.show() """
+    plt.show()
     
 
 if __name__ == "__main__":
@@ -348,8 +345,8 @@ if __name__ == "__main__":
     #task_1B()
     #task_2B()
     #task_3B()
-    task_4B()
-    #task_5B()
+    #task_4B()
+    task_5B()
     
 # ______C. Analysis of 2D Spectra______ #
     #task_1C()
