@@ -50,26 +50,24 @@ img_real_flat = img_real.flatten()
 img_imag_flat = img_imag.flatten()
 
 
-real_hist, real_bins = np.histogram(img_real_flat, bins=6000)
-imag_hist, imag_bins = np.histogram(img_imag_flat, bins=6000)
+real_hist, real_bins = np.histogram(img_real, bins=6000)
+imag_hist, imag_bins = np.histogram(img_imag, bins=6000)
 
 
 def task_1A():
     # Plot histogram of real and imaginary part of the image
     plt.style.use("ggplot")
     
-    figure, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True) # maybe us 65535 as bins for 16 bit images
-    axes[0].hist(img_real_flat, bins=6000)
+    figure, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=False) # maybe us 65535 as bins for 16 bit images
+    axes[0].hist(img_real, bins=6000)
     axes[0].set_title("Real part")
     axes[0].set_xlabel("Intensity")
     axes[0].set_ylabel("Frequency")
-    axes[0].grid(True)
     
     axes[1].hist(img_imag_flat, bins=6000, color="teal")
     axes[1].set_title("Imaginary part")
     axes[1].set_xlabel("Intensity")
-    #axes[1].set_ylabel("Frequency")
-    axes[1].grid(True)
+    axes[1].set_ylabel("Frequency")
     
     plt.tight_layout()
     plt.show()
@@ -95,6 +93,12 @@ def task_2A():
     
     normalized_variance = np.var(slc_mag) / np.mean(slc_mag)
     print("Normalized variance: ", normalized_variance)
+    # Histogram Normalized
+    plt.hist(slc_mag.flatten(), bins=6000, density=True)
+    plt.title("Intensity histogram")
+    plt.xlabel("Intensity")
+    plt.ylabel("Frequency")
+    plt.show()
     
     
 def task_3A():
@@ -104,12 +108,9 @@ def task_3A():
     # Perform 2D convolution to apply the smoothing operation
     smoothed_intensity = convolve2d(slc_mag, kernel, mode='same')
 
-    # Compute histogram of the smoothed intensity image
-    smoothed_intensity_hist, smoothed_intensity_bins = np.histogram(smoothed_intensity.flatten(), bins=100)
-
     # Plot histogram of the smoothed intensity image
     plt.figure(figsize=(8, 6))
-    plt.hist(smoothed_intensity.flatten(), bins=6000)
+    plt.hist(smoothed_intensity.flatten(), bins=6000, density=True)
     plt.xlabel('Intensity')
     plt.ylabel('Frequency')
     plt.title('Histogram of Smoothed Intensity Image')
@@ -311,7 +312,30 @@ def task_1C():
     azimuth_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[0]))
     range_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[1]))
     
-    fig
+    fig =  plt.figure(figsize=(8, 6))
+    ax1 = fig.add_subplot(131, projection='3d')
+    ax1.plot_surface(azimuth_bins, range_bins, np.abs(avg_co_spectrum), cmap='viridis')
+    ax1.set_title('Co-spectrum')
+    ax1.set_xlabel(r'$k_y$ $[rad/m]$')
+    ax1.set_ylabel(r'$k_x$ $[rad/m]$')
+    ax1.set_zlabel('Magnitude')
+    
+    ax2 = fig.add_subplot(132, projection='3d')
+    ax2.plot_surface(azimuth_bins, range_bins, np.abs(avg_cross_spectrum), cmap='viridis')
+    ax2.set_title('Cross-spectrum')
+    ax2.set_xlabel(r'$k_y$ $[rad/m]$')
+    ax2.set_ylabel(r'$k_x$ $[rad/m]$')
+    ax2.set_zlabel('Magnitude')
+    
+    ax3 = fig.add_subplot(133, projection='3d')
+    ax3.plot_surface(azimuth_bins, range_bins, np.abs(cross_spectrum1_3), cmap='viridis')
+    ax3.set_title('sub1$\times$sub3')
+    ax3.set_xlabel(r'$k_y$ $[rad/m]$')
+    ax3.set_ylabel(r'$k_x$ $[rad/m]$')
+    ax3.set_zlabel('Magnitude')
+    
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     #task_0()
@@ -319,7 +343,7 @@ if __name__ == "__main__":
 # ______A. Image Statistics______ #
     #task_1A()
     #task_2A()
-    #task_3A()
+    task_3A()
     
 # ______B. Look extraction and Fourier Spectral Estimation______ #
     #task_1B()
@@ -329,4 +353,4 @@ if __name__ == "__main__":
     #task_5B()
     
 # ______C. Analysis of 2D Spectra______ #
-    task_1C()
+    #task_1C()

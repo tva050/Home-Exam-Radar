@@ -233,48 +233,44 @@ def task_4B():
     colorbar = ColorbarBase(colorbar_axes, cmap='gray', orientation="horizontal", norm=norm) 
     
     plt.show()
-    
+
+mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
+mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
+mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
+normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
+print(normalized_intensity1.shape, "normalized_intensity1")
+normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
+normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
+
+
+fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
+fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
+fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
+""" 
+Co-spectrum:
+- 1 and 1 
+- 2 and 2
+- 3 and 3
+Cross-spectrum:
+- 1 and 2
+- 2 and 3
+- 1 and 3
+"""
+
+co_spectrum1_1 = fourier_tr1 * fourier_tr1 # Co-spectrum 1-2
+co_spectrum2_2 = fourier_tr2 * fourier_tr2 # Co-spectrum 2-3
+co_spectrum3_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 1-3
+
+cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
+cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
+cross_spectrum1_3 = fourier_tr1 * fourier_tr3 # Cross-spectrum 1-3
+avg_co_spectrum = (co_spectrum1_1 + co_spectrum2_2 + co_spectrum3_3) / 3
+avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
+
+magnitude_co_spectrum1_3 = np.abs(cross_spectrum1_3)
+phase_co_spectrum1_3 = np.angle(cross_spectrum1_3)
+ 
 def task_5B():
-    mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
-    mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
-    mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
-
-
-    normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
-    print(normalized_intensity1.shape, "normalized_intensity1")
-    normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
-    normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
-    
-    
-    fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
-    fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
-    fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
-
-    """ 
-    Co-spectrum:
-    - 1 and 1 
-    - 2 and 2
-    - 3 and 3
-    Cross-spectrum:
-    - 1 and 2
-    - 2 and 3
-    - 1 and 3
-    """
-    
-    co_spectrum1_2 = fourier_tr1 * fourier_tr1 # Co-spectrum 1-2
-    co_spectrum2_3 = fourier_tr2 * fourier_tr2 # Co-spectrum 2-3
-    co_spectrum1_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 1-3
-
-    
-    cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
-    cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
-
-    avg_co_spectrum = (co_spectrum1_2 + co_spectrum2_3 + co_spectrum1_3) / 3
-    avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
-    
-    magnitude_co_spectrum1_3 = np.abs(co_spectrum1_3)
-    phase_co_spectrum1_3 = np.angle(co_spectrum1_3)
-
     Ny, Nx = normalized_intensity1.shape
 
     dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
@@ -319,4 +315,68 @@ def task_5B():
     
     
     
-task_5B()
+#task_5B()
+
+
+#azimuth_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[0]))
+#range_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[1]))
+azimuth_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[1]))
+range_bins = np.fft.fftshift(np.fft.fftfreq(avg_co_spectrum.shape[0]))
+
+# Plot real and imaginary parts of the spectra
+""" def plot_spectrum_parts(real_part, imag_part, title):
+    fig = plt.figure(figsize=(12, 5))
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.plot_surface(azimuth_bins[:, np.newaxis], range_bins[np.newaxis, :], real_part, cmap='viridis')
+    ax1.set_title('Real Part')
+    ax1.set_xlabel('Azimuth Wavenumber')
+    ax1.set_ylabel('Range Wavenumber')
+    ax1.set_zlabel('Magnitude')
+
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.plot_surface(azimuth_bins[:, np.newaxis], range_bins[np.newaxis, :], imag_part, cmap='viridis')
+    ax2.set_title('Imaginary Part')
+    ax2.set_xlabel('Azimuth Wavenumber')
+    ax2.set_ylabel('Range Wavenumber')
+    ax2.set_zlabel('Magnitude')
+
+    plt.suptitle(title)
+    plt.show() """
+
+# Plot real and imaginary parts of the co-spectrum
+#plot_spectrum_parts(np.real(avg_co_spectrum), np.imag(avg_co_spectrum), 'Co-Spectrum')
+
+# Plot real and imaginary parts of the cross-spectrum
+#plot_spectrum_parts(np.real(avg_cross_spectrum), np.imag(avg_cross_spectrum), 'Cross-Spectrum')
+
+# Plot real and imaginary parts of the co-spectrum between look 1 and look 3
+#plot_spectrum_parts(np.real(magnitude_co_spectrum1_3), np.imag(magnitude_co_spectrum1_3), 'Co-Spectrum between Look 1 and Look 3')
+
+azimuth_bins_2D, range_bins_2D = np.meshgrid(azimuth_bins, range_bins)
+
+def plot_spectrum_parts(real_part, imag_part, title):
+    fig = plt.figure(figsize=(12, 5))
+    
+    ax1 = fig.add_subplot(121)
+    contour1 = ax1.contourf(azimuth_bins_2D, range_bins_2D, np.abs(real_part), cmap='viridis')
+    ax1.set_title('Real Part')
+    ax1.set_xlabel('Azimuth Wavenumber')
+    ax1.set_ylabel('Range Wavenumber')
+    ax1.set_xlim(-0.15, 0.15)
+    ax1.set_ylim(-0.15, 0.15)
+    fig.colorbar(contour1, ax=ax1, orientation='vertical')
+
+    ax2 = fig.add_subplot(122)
+    contour2 = ax2.contourf(azimuth_bins_2D, range_bins_2D, np.abs(imag_part), cmap='viridis')
+    ax2.set_title('Imaginary Part')
+    ax2.set_ylabel('Azimuth Wavenumber')
+    ax2.set_xlabel('Range Wavenumber')
+    ax2.set_xlim(-0.15, 0.15)
+    ax2.set_ylim(-0.15, 0.15)
+    fig.colorbar(contour2, ax=ax2, orientation='vertical')
+
+    plt.suptitle(title)
+    plt.show()
+    
+# Plot real and imaginary parts of the co-spectrum
+plot_spectrum_parts(np.real(avg_co_spectrum), np.imag(avg_co_spectrum), 'Co-Spectrum')

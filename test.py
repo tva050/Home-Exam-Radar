@@ -3,6 +3,9 @@ import numpy as np
 from scipy.signal import convolve2d
 import matplotlib.colors as mcolors
 from matplotlib.colorbar import ColorbarBase
+import cv2 
+from scipy.stats import rayleigh, norm, gamma
+from numpy import linalg as LA
 
 
 
@@ -58,17 +61,18 @@ def task_1A():
     # Plot histogram of real and imaginary part of the image
     plt.style.use("ggplot")
     
-    figure, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True) # maybe us 65535 as bins for 16 bit images
-    axes[0].hist(img_real_flat, bins=6000)
+    
+    figure, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=False) # maybe us 65535 as bins for 16 bit images
+    axes[0].hist(img_real_flat, bins=600)
     axes[0].set_title("Real part")
-    axes[0].set_xlabel("Intensity")
-    axes[0].set_ylabel("Frequency")
+    #axes[0].set_xlim(-2, 2)
+    #axes[0].set_ylim(0, 3000)
     axes[0].grid(True)
     
-    axes[1].hist(img_imag_flat, bins=6000, color="teal")
+    axes[1].hist(img_imag_flat, bins=600, color="teal")
     axes[1].set_title("Imaginary part")
-    axes[1].set_xlabel("Intensity")
-    #axes[1].set_ylabel("Frequency")
+    #axes[1].set_xlim(-2, 2)
+    #axes[1].set_ylim(0, 3000)
     axes[1].grid(True)
     
     plt.tight_layout()
@@ -81,22 +85,62 @@ def task_1A():
     print("max y real value", np.max(real_hist))
     print("max y imag value", np.max(imag_hist))
 
+#task_1A()
 slc_mag = np.abs(img_real + 1j*img_imag)
 def task_2A():
     plt.style.use("ggplot")
-    intensity_hist, intensity_bins = np.histogram(slc_mag.flatten(), bins=6000)
     
-    plt.hist(slc_mag.flatten(), bins=6000)
+    intensity_hist, intensity_bins = np.histogram(slc_mag.flatten(), bins=100)
+
+    
+    """ plt.hist(slc_mag.flatten(), bins=6000)
     plt.title("Intensity histogram")
     plt.xlabel("Intensity")
     plt.ylabel("Frequency")
-    #plt.grid(True)
-    plt.show()
+    plt.show() """
     
     normalized_variance = np.var(slc_mag) / np.mean(slc_mag)
     print("Normalized variance: ", normalized_variance)
+    """ plt.hist(slc_mag.flatten(), bins=6000, density=True)
+    plt.title("Intensity histogram")
+    plt.xlabel("Intensity")
+    plt.ylabel("Frequency")
+    plt.show() """
     
     
+    # Estimate parameters for Gaussian and Gamma distribution
+    mu, sigma = norm.fit(slc_mag.flatten())
+    alpha, loc, beta = gamma.fit(slc_mag.flatten())
+
+    # Estimate parameter for Rayleigh distribution (using mean as scale parameter)
+    scale_param = np.mean(slc_mag.flatten())
+    plt.figure(figsize=(8, 6))
+    plt.hist(slc_mag.flatten(), bins=100, color='gray', label='Intensity Histogram')
+
+    # Plot normalized Gaussian distribution function
+    x = np.linspace(min(intensity_bins), max(intensity_bins), 100)
+    gaussian_pdf = norm.pdf(x, mu, sigma)
+    gaussian_pdf_normalized = gaussian_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
+    plt.plot(x, gaussian_pdf_normalized, 'r--', label='Gaussian Distribution')
+
+    # Plot normalized Rayleigh distribution function
+    rayleigh_pdf = rayleigh.pdf(x, scale_param)
+    rayleigh_pdf_normalized = rayleigh_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
+    plt.plot(x, rayleigh_pdf_normalized, 'b--', label='Rayleigh Distribution')
+    
+    gamma_pdf = gamma.pdf(x, alpha, loc, beta)
+    gamma_pdf = gamma_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
+    plt.plot(x, gamma_pdf, 'g--', label='Gamma Distribution')
+
+
+    plt.xlabel('Intensity')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of Intensity Image with Distribution Functions')
+    plt.legend()
+    plt.show()
+    
+task_2A()
+
 def task_3A():
     plt.style.use("ggplot")
     kernel = np.ones((5, 5)) / 25  # Normalized kernel for averaging
@@ -109,7 +153,7 @@ def task_3A():
 
     # Plot histogram of the smoothed intensity image
     plt.figure(figsize=(8, 6))
-    plt.hist(smoothed_intensity.flatten(), bins=6000)
+    plt.hist(smoothed_intensity.flatten(), bins=6000, density=True)
     plt.xlabel('Intensity')
     plt.ylabel('Frequency')
     plt.title('Histogram of Smoothed Intensity Image')
@@ -120,23 +164,50 @@ def task_3A():
 
     print("Normalized variance of the smoothed intensity image:", normalized_variance_smoothed)
     
+    # Estimate parameters for Gaussian distribution
+    mu, sigma = norm.fit(smoothed_intensity.flatten())
+
+    # Estimate parameter for Rayleigh distribution (using mean as scale parameter)
+    scale_param = np.mean(smoothed_intensity.flatten())
+    
+    alpha, loc, beta = gamma.fit(smoothed_intensity.flatten())
+
+    plt.figure(figsize=(8, 6))
+    plt.hist(smoothed_intensity.flatten(), bins=100, color='gray', label='Intensity Histogram')
+
+    # Plot normalized Gaussian distribution function
+    x = np.linspace(min(smoothed_intensity_bins), max(smoothed_intensity_bins), 100)
+    gaussian_pdf = norm.pdf(x, mu, sigma)
+    gaussian_pdf_normalized = gaussian_pdf * len(smoothed_intensity.flatten()) * np.diff(smoothed_intensity_bins)[0]
+    plt.plot(x, gaussian_pdf_normalized, 'r--', label='Gaussian Distribution')
+
+    # Plot normalized Rayleigh distribution function
+    rayleigh_pdf = rayleigh.pdf(x, scale_param)
+    rayleigh_pdf_normalized = rayleigh_pdf * len(smoothed_intensity.flatten()) * np.diff(smoothed_intensity_bins)[0]
+    plt.plot(x, rayleigh_pdf_normalized, 'b--', label='Rayleigh Distribution')
+
+    gamma_pdf = gamma.pdf(x, alpha, loc, beta)
+    gamma_pdf = gamma_pdf * len(smoothed_intensity.flatten()) * np.diff(smoothed_intensity_bins)[0]
+    plt.plot(x, gamma_pdf, 'g--', label='Gamma Distribution')
+
+    plt.xlabel('Intensity')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of Intensity Image with Distribution Functions')
+    plt.legend()
+    plt.show()
+    
+task_3A()
     
 """ ---------------------------------- B. Look extraction and Fourier Spectral Estimation ----------------------------------- """
 
-#mean_int = np.mean(np.abs(img))
-#img_normalized = img / mean_int
+img_int = np.mean(img)
+img_normalized = img / img_int
 
-slc_magnitude = np.sqrt(img_real**2 + img_imag**2)
-img_normalized = slc_magnitude / np.mean(slc_magnitude)
 
 img_fft = np.fft.fft2(img_normalized)
 img_fft_shifted = np.fft.fftshift(img_fft)
-mag_spec = np.log(np.abs(img_fft_shifted))
+img_spec = np.abs(img_fft_shifted)
 
-#Ny = np.arange(1, 1759+1, 1)
-#Nx = np.arange(1, 501+1, 1)
-
-Ny, Nx = img_normalized.shape
 
 dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
 dy = V / f_prf # Resolution or pixel size in azimuth (y)
@@ -147,221 +218,273 @@ delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
 d_kx_max = np.pi / dx
 d_ky_max = np.pi / dy
 
-
-d_kx_min = -d_kx_max
-d_ky_min = -d_ky_max
-
-kx = np.linspace(d_kx_min, d_kx_max, Nx)
-ky = np.linspace(d_ky_min, d_ky_max, Ny)
-Kx, Ky = np.meshgrid(kx, ky)
+kx = np.linspace(-d_kx_max, d_kx_max, Nx)
+ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
 
 def task_1B():
     """ 
-    Plots the magnitude spectrum of the image in the wavenumber domain.
+    Plots the magnitude spectrum of the image in the Fourier/Freq domain.
     ~ Complex valued 2D spectra
     """
-    plt.style.use("ggplot")
+    #plt.style.use("ggplot")
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(Kx, Ky, np.log(np.abs(img_fft_shifted)), cmap="gray", shading='nearest', vmin=0, vmax=15) 
+    plt.pcolormesh(kx, ky, img_spec, cmap='gray')
     plt.colorbar()
-    plt.xlim(-0.08, 0.08)
-    plt.ylim(-0.08, 0.08)
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.title('Magnitude Spectrum of the Image')
+    plt.title('Spectrum of the Image')
     plt.show()
+    
+    fig = plt.figure(figsize=(8, 6))
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.abs(np.real(img_spec)), cmap='viridis')
+    ax1.set_title('Real Part')
+    ax1.set_xlabel('Azimuth Wavenumber')
+    ax1.set_ylabel('Range Wavenumber')
+    ax1.set_zlabel('Magnitude')
 
-spec_profile_azimuth = np.mean(mag_spec, axis=0)
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.abs(np.imag(img_spec)), cmap='viridis')
+    ax2.set_title('Imaginary Part')
+    ax2.set_xlabel('Azimuth Wavenumber')
+    ax2.set_ylabel('Range Wavenumber')
+    ax2.set_zlabel('Magnitude')
+
+    plt.suptitle('3D Plot of Co-Spectrum')
+    plt.show()
+    
+
+spec_profile_azimuth = np.mean(np.abs(img_fft_shifted), axis=0)
 def task_2B():
+    """ 
+    Plots the azimuth profile of the spectral profile.
+    ~ Azimuth Spectral Profile
+    """
     plt.style.use("ggplot")
     
-    print(spec_profile_azimuth.max(), spec_profile_azimuth.min())
-    freqs = np.fft.fftshift(np.fft.fftfreq(Ny, d=1/f_prf))
-    #min_azimuth = -d_ky_max
-    #max_azimuth = d_ky_max
-    #Ny = img_fft_shifted.shape[1]
-    #azimuth_freqs = np.linspace(min_azimuth, max_azimuth, Ny)
+    freqs = np.fft.fftfreq(Ny, d=1/f_prf)
+    freqs = np.fft.fftshift(freqs)
     
-    #spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
-    #spec_profile_azimuth = np.mean(spec_profile_azimuth)
+    spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
     
     plt.figure(figsize=(8, 6))
-    #plt.plot(azimuth_freqs, spec_profile_azimuth_normalized)
-    plt.plot(freqs, spec_profile_azimuth)
-    plt.xlabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.ylabel(r'Azimuth Spectral Profile $[Norm]$')
-    plt.title('Azimuth Spectrum Profile')
+    plt.plot(freqs, spec_profile_azimuth_normalized)
+    plt.xlabel(r'Azimuth Frequency $[Hz]$')
+    plt.ylabel(r'Intensity $[Norm]$')
+    plt.title('Azimuth Fourier Domain')
     plt.show()
     
     is_symmetric = np.allclose(spec_profile_azimuth, spec_profile_azimuth[::-1], atol=1e-10)
     if is_symmetric:
         print("The spectral profile is symmetric around the zero frequency.")
     else:
-        print("The spectral profile is shifted.")
+        print("----|The spectral profile is shifted|----")
+        # find the amount of shift
+        print("Shifted by: ", np.argmax(spec_profile_azimuth) - Ny // 2)
 
-index_max = np.argmax(spec_profile_azimuth)
-azimuth_shift_pixels = index_max - Ny // 2
-shifted_fourier_transform_shifted_azimuth = np.roll(img_fft_shifted, shift=azimuth_shift_pixels, axis=1)
+
+azimuth_shift = len(spec_profile_azimuth) // 2
+
+shifted_img_fft = np.roll(img_fft_shifted, shift=-azimuth_shift, axis=0)
 def task_3B():
-    print("Azimuth shift in pixels:", azimuth_shift_pixels)
+    print("Azimuth shift in pixels:", shifted_img_fft)
     
     plt.figure(figsize=(8, 6))
-    plt.pcolormesh(Kx, Ky, np.log(np.abs(shifted_fourier_transform_shifted_azimuth)), cmap='gray')
+    plt.pcolormesh(kx, ky, np.abs(shifted_img_fft), cmap='gray')
     plt.colorbar()
-    #plt.xlim(-0.08, 0.08)
-    #plt.ylim(-0.08, 0.08)
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.title('Magnitude Spectrum of the Image with Azimuth Shift')
+    plt.title('Spectrum of the Image with Azimuth Shift')
     plt.show()
     
-Ny = shifted_fourier_transform_shifted_azimuth.shape[1]
+    fig = plt.figure(figsize=(8, 6))
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.abs(np.real(shifted_img_fft)), cmap='viridis')
+    ax1.set_title('Real Part')
+    ax1.set_xlabel('Azimuth Wavenumber')
+    ax1.set_ylabel('Range Wavenumber')
+    ax1.set_zlabel('Magnitude')
+
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.abs(np.imag(shifted_img_fft)), cmap='viridis')
+    ax2.set_title('Imaginary Part')
+    ax2.set_xlabel('Azimuth Wavenumber')
+    ax2.set_ylabel('Range Wavenumber')
+    ax2.set_zlabel('Magnitude')
+
+    plt.suptitle('3D Plot of Co-Spectrum')
+    plt.show()
     
+Ny = shifted_img_fft.shape[1]
+print(shifted_img_fft.shape)
 num_parts = 3
 part_size = Ny // num_parts
 intensity_images = []
 
 for i in range(num_parts):
     start_idx = i*part_size
-    end_idx = (i +1) * part_size
-    complex_look = shifted_fourier_transform_shifted_azimuth[:, start_idx:end_idx]
+    end_idx = (i+1) * part_size
+    complex_look = shifted_img_fft[:, start_idx:end_idx]
     
-    complex_image  = np.fft.ifftshift(complex_look, axes=1)
+    complex_image  = np.fft.ifftshift(complex_look, axes=0)
     spatial_image = np.fft.ifft2(complex_image)
     
-    intensity_image = np.abs(spatial_image)**2
+    intensity_image = np.abs(spatial_image)
     intensity_images.append(intensity_image)    
-def task_4B():        
+def task_4B():
+        
     plt.figure(figsize=(8, 6))
     for i, intensity_image in enumerate(intensity_images):
         plt.subplot(1, num_parts, i+1)
         plt.pcolormesh(intensity_image, cmap='gray')
         plt.title(f'Look {i+1}')
+        #plt.colorbar()
         plt.axis('off')
     
-    # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
     colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
-
-    # Create a Normalize instance to normalize data to [0-1] range
     norm = mcolors.Normalize(vmin=np.min(intensity_images), vmax=np.max(intensity_images))
-    # Create a ColorbarBase instance with the 'gray' colormap
-    colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
+    colorbar = ColorbarBase(colorbar_axes, cmap='gray', orientation="horizontal", norm=norm) 
+    
     plt.show()
-    
+
+mean_intensity1 = np.mean(intensity_images[0]) # Mean intensity of the first look
+mean_intensity2 = np.mean(intensity_images[1]) # Mean intensity of the second look
+mean_intensity3 = np.mean(intensity_images[2]) # Mean intensity of the third look
+normalized_intensity1 = intensity_images[0] / mean_intensity1 # Normalized intensity of the first look
+print(normalized_intensity1.shape, "normalized_intensity1")
+normalized_intensity2 = intensity_images[1] / mean_intensity2 # Normalized intensity of the second look
+normalized_intensity3 = intensity_images[2] / mean_intensity3 # Normalized intensity of the third look
+
+
+fourier_tr1 = np.fft.fftshift(np.fft.fft2(normalized_intensity1))
+fourier_tr2 = np.fft.fftshift(np.fft.fft2(normalized_intensity2))
+fourier_tr3 = np.fft.fftshift(np.fft.fft2(normalized_intensity3))
+""" 
+Co-spectrum:
+- 1 and 1 
+- 2 and 2
+- 3 and 3
+Cross-spectrum:
+- 1 and 2
+- 2 and 3
+- 1 and 3
+"""
+
+co_spectrum1_1 = fourier_tr1 * fourier_tr1 # Co-spectrum 1-2
+co_spectrum2_2 = fourier_tr2 * fourier_tr2 # Co-spectrum 2-3
+co_spectrum3_3 = fourier_tr3 * fourier_tr3 # Co-spectrum 1-3
+
+cross_spectrum1_2 = fourier_tr1 * fourier_tr2 # Cross-spectrum 1-2
+cross_spectrum2_3 = fourier_tr2 * fourier_tr3 # Cross-spectrum 2-3
+cross_spectrum1_3 = fourier_tr1 * fourier_tr3 # Cross-spectrum 1-3
+avg_co_spectrum = (co_spectrum1_1 + co_spectrum2_2 + co_spectrum3_3) / 3
+avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
+
+magnitude_co_spectrum1_3 = np.abs(cross_spectrum1_3)
+phase_co_spectrum1_3 = np.angle(cross_spectrum1_3)
+ 
+Ny, Nx = normalized_intensity1.shape
+dx = c / (2*f_sf*np.sin(theta)) # Resolution or pixel size in range (x)
+dy = V / f_prf # Resolution or pixel size in azimuth (y)
+#print(dx*Nx)
+#print(dy*Ny)
+delta_kx = (2*np.pi) / (Nx*dx) # Resolution in kx
+delta_ky = (2*np.pi) / (Ny*dy) # Resolution in ky
+d_kx_max = np.pi / dx
+d_ky_max = np.pi / dy
+kx = np.linspace(-d_kx_max, d_kx_max, Nx)
+ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
+ 
 def task_5B():
-    normalized_intensity_images = [(img - np.mean(img)) / np.mean(img) for img in intensity_images]
-    
-    fft_intensity_images = [np.fft.fft2(img) for img in normalized_intensity_images]
-    
-    co_spectra = []
-    cross_spectra = []
-    
-    for i in range(len(fft_intensity_images)):
-        for j in range(i, len(fft_intensity_images)):
-            product_spectrum = np.conj(fft_intensity_images[i]) * fft_intensity_images[j]
-            if i == j:
-                co_spectra.append(product_spectrum)
-            else:
-                cross_spectra.append(product_spectrum)
-    
-    print("Number of Co-spectra: ",len(co_spectra))
-    print("Number of Cross-spectra: ",len(cross_spectra))
-    co_spectrum_avg = np.mean(co_spectra, axis=0)
-    #co_spectrum_avg = np.roll(co_spectrum_avg, shift=azimuth_shift_pixels, axis=0)
-    co_spectrum_avg = np.fft.fftshift(co_spectrum_avg, axes=(0,1))
-    
-    cross_spectrum_avg = np.mean(cross_spectra, axis=0)
-    #cross_spectrum_avg = np.roll(cross_spectrum_avg, shift=azimuth_shift_pixels, axis=0)
-    cross_spectrum_avg = np.fft.fftshift(cross_spectrum_avg, axes=(0,1))
-    
-    complex_spectra = [co_spectrum_avg] + [cross_spectrum_avg]*2
-    #complex_spectra = np.roll(complex_spectra, shift=azimuth_shift_pixels, axis=1)
-    
-    """ plt.pcolormesh(np.log(np.abs(complex_spectra[0])), cmap='gray', vmin=6, vmax=15, shading="gouraud")
+
+    plt.figure(figsize=(8, 6))
+    plt.pcolormesh(np.log(np.abs(avg_co_spectrum)), cmap='gray')
     plt.colorbar()
     plt.xlabel(r'Range Wavenumber $[rad/m]$')
     plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-    plt.title('Co-spectrum')
-    plt.show() """
+    plt.title('Co-Spectrum')
+    plt.show()
+
+    plt.figure(figsize=(8, 6))
+    plt.pcolormesh(kx,ky,np.log(np.abs(avg_cross_spectrum)), cmap='gray')
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Cross-Spectrum')
+    plt.show()
     
     plt.figure(figsize=(8, 6))
-    for i, complex_spectrum in enumerate(complex_spectra):
-        plt.subplot(1, 3, i+1)
-        plt.pcolormesh(np.log(np.abs(complex_spectrum)), cmap='gray', vmin=6, vmax=15, shading="gouraud")
-        plt.title(f'Spectrum {i+1}')
-        plt.colorbar()
-        plt.xlabel(r'Range Wavenumber $[rad/m]$')
-        plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
-        plt.axis('off')
-    
-    # Create a new axes at the bottom of current figure, with 10% height and 100% width relative to the figure
-    #colorbar_axes = plt.gcf().add_axes([0.138, 0.06, 0.75, 0.04])
-    
-    # Create a Normalize instance to normalize data to [0-1] range
-    #norm = mcolors.Normalize(vmin=np.min(complex_spectra), vmax=np.max(complex_spectra))
-    
-    # Create a ColorbarBase instance with the 'gray' colormap
-    #colorbar = ColorbarBase(colorbar_axes, cmap='gray', norm=norm, orientation='horizontal')
+    plt.pcolormesh(kx,ky, np.log(np.abs(magnitude_co_spectrum1_3)), cmap='gray')
+    plt.colorbar()
+    plt.xlabel(r'Range Wavenumber $[rad/m]$')
+    plt.ylabel(r'Azimuth Wavenumber $[rad/m]$')
+    plt.title('Magnitude of Co-Spectrum')
     plt.show()
     
-""" ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
+    
+    
+#task_5B()
 
-def task_1C():
-    Ny, Nx = shifted_fourier_transform_shifted_azimuth.shape
+def task_6B():
+    plt.subplot(1, 2, 1)
+    plt.contourf(kx, ky, np.abs(np.real(avg_co_spectrum)))
+    plt.colorbar()
+    plt.xlim(-0.05, 0.05)
+    plt.ylim(-0.05, 0.05)
+    plt.title("Real part of Co-Spectrum")
+    plt.xlabel("Range Wavenumber [rad/m]")
+    plt.ylabel("Azimuth Wavenumber [rad/m]")
     
-    shifted_spectrum = np.fft.fftshift(shifted_fourier_transform_shifted_azimuth)
+    plt.subplot(1, 2, 2)
+    plt.contourf(kx, ky, np.abs(np.imag(avg_co_spectrum)))
+    plt.colorbar()
+    plt.xlim(-0.05, 0.05)
+    plt.ylim(-0.05, 0.05)
+    plt.title("Imaginary part of Co-Spectrum")
+    plt.xlabel("Range Wavenumber [rad/m]")
+    plt.ylabel("Azimuth Wavenumber [rad/m]")
+    plt.show()
     
-    
-    # plot only on surface plot 
+def task_7B():
     fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection='3d')
-    X, Y = np.meshgrid(kx, ky)
-    ax.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
-    ax.set_title('Magnitude Spectrum')
-    ax.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax.set_zlabel('Magnitude')
-    plt.show()
-    """  fig = plt.figure(figsize=(10, 5))
-    ax1 = fig.add_subplot(1, 3, 1, projection='3d')
-    X, Y = np.meshgrid(kx, ky)
-    ax1.plot_surface(X, Y, np.real(shifted_spectrum), cmap='viridis')
-    ax1.set_title('Magnitude Spectrum')
-    ax1.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax1.set_ylabel('Azimuth Wavenumber $[rad/m]$')
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.abs(np.real(avg_co_spectrum)), cmap='viridis')
+    ax1.set_title('Real Part')
+    ax1.set_xlabel('Azimuth Wavenumber')
+    ax1.set_ylabel('Range Wavenumber')
     ax1.set_zlabel('Magnitude')
-    
-    ax2 = fig.add_subplot(1, 3, 2, projection='3d')
-    ax2.plot_surface(X, Y, np.imag(shifted_spectrum), cmap='viridis')
-    ax2.set_title('Phase Spectrum')
-    ax2.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax2.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax2.set_zlabel('Phase')
-    
-    ax3 = fig.add_subplot(1, 3, 3, projection='3d')
-    ax3.plot_surface(X, Y, np.angle(shifted_spectrum), cmap='viridis')
-    ax3.set_title('Phase Spectrum')
-    ax3.set_xlabel('Range Wavenumber $[rad/m]$')
-    ax3.set_ylabel('Azimuth Wavenumber $[rad/m]$')
-    ax3.set_zlabel('Phase')
-    
-    plt.show() """
-    
 
-if __name__ == "__main__":
-    #task_0()
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.abs(np.imag(avg_co_spectrum)), cmap='viridis')
+    ax2.set_title('Imaginary Part')
+    ax2.set_xlabel('Azimuth Wavenumber')
+    ax2.set_ylabel('Range Wavenumber')
+    ax2.set_zlabel('Magnitude')
+
+    plt.suptitle('3D Plot of Co-Spectrum')
+    plt.show()
     
-# ______A. Image Statistics______ #
-    #task_1A()
-    #task_2A()
-    #task_3A()
-    
-# ______B. Look extraction and Fourier Spectral Estimation______ #
-    #task_1B()
-    task_2B()
-    #task_3B()
-    #task_4B()
-    #task_5B()
-    
-# ______C. Analysis of 2D Spectra______ #
-    #task_1C()
+    fig = plt.figure(figsize=(8, 6))
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax1.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.log(np.abs(np.real(avg_cross_spectrum))), cmap='viridis')
+    ax1.set_title('Real Part')
+    ax1.set_xlabel('Azimuth Wavenumber')
+    ax1.set_ylabel('Range Wavenumber')
+    ax1.set_zlabel('Magnitude')
+
+    ax2 = fig.add_subplot(122, projection='3d')
+    ax2.plot_surface(kx[np.newaxis,:], ky[:,np.newaxis], np.log(np.abs(np.imag(avg_cross_spectrum))), cmap='viridis')
+    ax2.set_title('Imaginary Part')
+    ax2.set_xlabel('Azimuth Wavenumber')
+    ax2.set_ylabel('Range Wavenumber')
+    ax2.set_zlabel('Magnitude')
+
+    plt.suptitle('3D Plot of Co-Spectrum')
+    plt.show()
+
+
+#task_1A()
+#task_1B()
+#task_3B()
+#task_6B()
+#task_7B()
