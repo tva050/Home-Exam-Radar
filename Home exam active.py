@@ -171,7 +171,7 @@ def task_2B():
     freqs = np.fft.fftshift(freqs)
     
     spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
-    
+
     plt.figure(figsize=(8, 6))
     plt.plot(freqs ,spec_profile_azimuth_normalized)
     plt.xlabel(r'Azimuth Frequency $[Hz]$')
