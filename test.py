@@ -4,7 +4,7 @@ from scipy.signal import convolve2d
 import matplotlib.colors as mcolors
 from matplotlib.colorbar import ColorbarBase
 import cv2 
-from scipy.stats import rayleigh, norm, gamma
+from scipy.stats import rayleigh, norm, gamma, expon
 from numpy import linalg as LA
 
 
@@ -111,6 +111,7 @@ def task_2A():
     # Estimate parameters for Gaussian and Gamma distribution
     mu, sigma = norm.fit(slc_mag.flatten())
     alpha, loc, beta = gamma.fit(slc_mag.flatten())
+    scale_exp = 1 / np.mean(slc_mag.flatten())
 
     # Estimate parameter for Rayleigh distribution (using mean as scale parameter)
     scale_param = np.mean(slc_mag.flatten())
@@ -132,6 +133,9 @@ def task_2A():
     gamma_pdf = gamma_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
     plt.plot(x, gamma_pdf, 'g--', label='Gamma Distribution')
 
+    exponential_pdf = expon.pdf(x, scale=scale_exp)
+    exponential_pdf = exponential_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
+    plt.plot(x, exponential_pdf, 'm--', label='Exponential Distribution')
 
     plt.xlabel('Intensity')
     plt.ylabel('Frequency')

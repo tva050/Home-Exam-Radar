@@ -173,11 +173,16 @@ def task_2B():
     spec_profile_azimuth_normalized = spec_profile_azimuth / spec_profile_azimuth.max()
     
     plt.figure(figsize=(8, 6))
-    plt.plot(freqs, spec_profile_azimuth_normalized)
+    plt.plot(freqs ,spec_profile_azimuth_normalized)
     plt.xlabel(r'Azimuth Frequency $[Hz]$')
     plt.ylabel(r'Intensity $[Norm]$')
     plt.title('Azimuth Fourier Domain')
     plt.show()
+    
+    # print the maximum and minimum values of azimuth frequency
+    print("Max azimuth frequency: ", freqs.max())
+    print("Min azimuth frequency: ", freqs.min())
+    
     
     is_symmetric = np.allclose(spec_profile_azimuth, spec_profile_azimuth[::-1], atol=1e-10)
     if is_symmetric:
@@ -343,11 +348,11 @@ if __name__ == "__main__":
 # ______A. Image Statistics______ #
     #task_1A()
     #task_2A()
-    task_3A()
+    #task_3A()
     
 # ______B. Look extraction and Fourier Spectral Estimation______ #
     #task_1B()
-    #task_2B()
+    task_2B()
     #task_3B()
     #task_4B()
     #task_5B()
