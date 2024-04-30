@@ -415,7 +415,7 @@ if max_freq_y > NY_half:
     
 wave_length_x = Nx / abs(max_freq_x)
 wave_length_y = Ny / abs(max_freq_y)
-
+print("max_freq_x: ", max_freq_x)
 print("Wavelength in x-direction: ", wave_length_x)
 print("Wavelength in y-direction: ", wave_length_y)
 
@@ -450,7 +450,25 @@ def task_5B():
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 
 def task_1C():
-    plt.subplot(2,3,1) 
+    plt.subplot(1,2,1)
+    plt.pcolormesh(np.imag(avg_cross_spectrum))
+    plt.colorbar()
+    plt.title("Imaginary part of Cross-Spectrum")
+    plt.xlabel("Range Wavenumber [rad/m]")
+    plt.ylabel("Azimuth Wavenumber [rad/m]")
+    
+    plt.subplot(1,2,2)
+    plt.pcolormesh(np.real(avg_cross_spectrum))
+    plt.colorbar()
+    plt.title("Real part of Cross-Spectrum")
+    plt.xlabel("Range Wavenumber [rad/m]")
+    plt.ylabel("Azimuth Wavenumber [rad/m]")
+
+    plt.tight_layout()
+    plt.show()
+    
+    
+    """ plt.subplot(2,3,1) 
     plt.contourf(kx, ky, np.abs(np.real(avg_co_spectrum)))
     #plt.colorbar()
     plt.xlim(-0.05, 0.05)
@@ -511,7 +529,7 @@ def task_1C():
     plt.ylabel("Azimuth Wavenumber [rad/m]")
     
     plt.tight_layout()
-    plt.show()
+    plt.show() """
 
 
 
