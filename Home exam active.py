@@ -6,11 +6,9 @@ from matplotlib.colorbar import ColorbarBase
 from scipy.stats import rayleigh, norm, gamma, expon, laplace
 
 
-
-
 # Paths to data and header file
-data_file = r"C:\Users\trym7\OneDrive - UiT Office 365\skole\FYS-3001\Home exam active\image.dat"
-header_file = r"C:\Users\trym7\OneDrive - UiT Office 365\skole\FYS-3001\Home exam active\image.txt"
+data_file = r"C:\Home exam active\image.dat"
+header_file = r"C:\Home exam active\image.txt"
 
 # Number of pixels from meta data 
 Ny = 1759
@@ -31,7 +29,7 @@ img = dat.reshape(Ny, Nx)
 
 """ ----------------------------------- Read Plot Data ----------------------------------- """ 
 def task_0():
-    # plot SLC image
+    """ ploting SLC image """
     plt.pcolormesh(np.abs(img), cmap='gray')
     plt.colorbar()
     plt.xlabel("Range (pixels)")
@@ -41,8 +39,6 @@ def task_0():
     
 
 """ ---------------------------------- A. Image Statistics ----------------------------------- """
-
-
 # Real and imaginary part of the image
 img_real = np.real(img)
 img_imag = np.imag(img)
@@ -50,17 +46,15 @@ img_imag = np.imag(img)
 img_real_flat = img_real.flatten()
 img_imag_flat = img_imag.flatten()
 
-
 real_hist, real_bins = np.histogram(img_real, bins=100)
 imag_hist, imag_bins = np.histogram(img_imag, bins=100)
 
 
 def task_1A():
-    # Plot histogram of real and imaginary part of the image
+    """ Histogram of real and imaginary part of the image """
     plt.style.use("ggplot")
     
-    
-    figure, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=False) # maybe us 65535 as bins for 16 bit images
+    figure, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=False) 
     axes[0].hist(img_real_flat, bins=100)
     axes[0].set_title("Real part")
     axes[0].set_xlabel("Intensity")
@@ -80,6 +74,7 @@ def task_1A():
     gaussian_pdf_r = norm.pdf(x_r, mu_r, sigma_r)
     gaussian_pdf_normalized_r = gaussian_pdf_r * len(img_real_flat) * np.diff(real_bins)[0]
     
+    # Estimate parameters for Laplace distribution real part
     loc_laplace_r, scale_laplace_r = laplace.fit(img_real_flat)
     laplace_pdf_r = laplace.pdf(x_r, loc_laplace_r, scale_laplace_r)
     laplace_pdf_normalized_r = laplace_pdf_r * len(img_real_flat) * np.diff(real_bins)[0]
@@ -90,6 +85,7 @@ def task_1A():
     gaussian_pdf_i = norm.pdf(x_i, mu_i, sigma_i)
     gaussian_pdf_normalized_i = gaussian_pdf_i * len(img_imag_flat) * np.diff(imag_bins)[0]
     
+    # Estimate parameters for Laplace distribution imaginary part
     loc_laplace_i, scale_laplace_i = laplace.fit(img_imag_flat)
     laplace_pdf_i = laplace.pdf(x_i, loc_laplace_i, scale_laplace_i)
     laplace_pdf_normalized_i = laplace_pdf_i * len(img_imag_flat) * np.diff(imag_bins)[0]
@@ -119,6 +115,7 @@ def task_1A():
 
 slc_mag = np.abs(img_real + 1j*img_imag)
 def task_2A():
+    """ histogram of the magnitude of the image """
     plt.style.use("ggplot")
     intensity_hist, intensity_bins = np.histogram(slc_mag.flatten(), bins=100)
     
@@ -138,13 +135,12 @@ def task_2A():
     plt.ylabel("Frequency")
     plt.show()
     
-    # Estimate parameters for Gaussian and Gamma distribution
+    # Estimate parameters for Gaussian, Gamma and exponential distribution
     mu, sigma = norm.fit(slc_mag.flatten())
     alpha, loc, beta = gamma.fit(slc_mag.flatten())
     scale_exp = 1 / np.mean(slc_mag.flatten())
-
-    # Estimate parameter for Rayleigh distribution (using mean as scale parameter)
     scale_param = np.mean(slc_mag.flatten())
+    
     plt.figure(figsize=(8, 6))
     plt.hist(slc_mag.flatten(), bins=100, color='gray', label='Intensity Histogram')
 
@@ -159,10 +155,12 @@ def task_2A():
     rayleigh_pdf_normalized = rayleigh_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
     plt.plot(x, rayleigh_pdf_normalized, 'b--', label='Rayleigh Distribution')
     
+    # Plot normalized Gamma distribution function
     gamma_pdf = gamma.pdf(x, alpha, loc, beta)
     gamma_pdf = gamma_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
     plt.plot(x, gamma_pdf, 'g--', label='Gamma Distribution')
 
+    # Plot normalized Exponential distribution function
     exponential_pdf = expon.pdf(x, scale=scale_exp)
     exponential_pdf = exponential_pdf * len(slc_mag.flatten()) * np.diff(intensity_bins)[0]
     plt.plot(x, exponential_pdf, 'm--', label='Exponential Distribution')
@@ -175,8 +173,9 @@ def task_2A():
     
     
 def task_3A():
+    """ 2D convolution to smooth the intensity image """
     plt.style.use("ggplot")
-    kernel = np.ones((5, 5)) / 25  # Normalized kernel for averaging
+    kernel = np.ones((5, 5)) / 25  # Normalized kernel for averaging  (5x5)
 
     # Perform 2D convolution to apply the smoothing operation
     smoothed_intensity = convolve2d(slc_mag, kernel, mode='same')
@@ -293,7 +292,7 @@ def task_2B():
     # shift the azimuth profile maximum to the center of the array for symmetry using np.roll
     max_idx = np.argmax(spec_profile_azimuth_normalized)
     
-    shift = np.roll(spec_profile_azimuth_normalized, -max_idx + Ny//2) #+ 60
+    shift = np.roll(spec_profile_azimuth_normalized, -max_idx + Ny//2 + 60)
     plt.plot(freqs, shift)
     plt.xlabel(r'Azimuth Frequency $[Hz]$')
     plt.ylabel(r'Intensity $[Norm]$')
@@ -312,7 +311,7 @@ def task_2B():
     
 # plot so that the maximum is in the center 
 idx = len(spec_profile_azimuth_normalized)
-max_idx = np.argmax(spec_profile_azimuth_normalized) + idx // 2#-60
+max_idx = np.argmax(spec_profile_azimuth_normalized) + idx // 2 - 60
 
 shifted_img_fft = np.roll(img_fft_shifted, -max_idx, axis=0)
 
@@ -330,9 +329,9 @@ Ny = shifted_img_fft.shape[1]
 print(shifted_img_fft.shape)
 num_parts = 3
 part_size = Ny // num_parts
-intensity_images = []
+intensity_images = [] 
 
-for i in range(num_parts):
+for i in range(num_parts): # Extracting the looks from the shifted spectrum and computing the intensity image 
     start_idx = i*part_size
     end_idx = (i+1) * part_size
     complex_look = shifted_img_fft[:, start_idx:end_idx]
@@ -343,7 +342,7 @@ for i in range(num_parts):
     intensity_image = np.abs(spatial_image)
     intensity_images.append(intensity_image)    
 def task_4B():
-        
+    """ Plot the intensity images of the looks (3 complex images -> 3 intensity images) """   
     plt.figure(figsize=(8, 6))
     for i, intensity_image in enumerate(intensity_images):
         plt.subplot(1, num_parts, i+1)
@@ -378,9 +377,9 @@ co_spectrum1_1 = fourier_tr1 * np.conj(fourier_tr1) # Co-spectrum 1*1
 co_spectrum2_2 = fourier_tr2 * np.conj(fourier_tr2) # Co-spectrum 2*2
 co_spectrum3_3 = fourier_tr3 * np.conj(fourier_tr3) # Co-spectrum 3*3
 
-cross_spectrum1_2 = fourier_tr1 * np.conj(fourier_tr2) # Cross-spectrum 1-2
-cross_spectrum2_3 = fourier_tr2 * np.conj(fourier_tr3) # Cross-spectrum 2-3
-cross_spectrum1_3 = fourier_tr1 * np.conj(fourier_tr3) # Cross-spectrum 1-3
+cross_spectrum1_2 = fourier_tr1 * np.conj(fourier_tr2) # Cross-spectrum 1*2
+cross_spectrum2_3 = fourier_tr2 * np.conj(fourier_tr3) # Cross-spectrum 2*3
+cross_spectrum1_3 = fourier_tr1 * np.conj(fourier_tr3) # Cross-spectrum 1*3
 
 avg_co_spectrum = (co_spectrum1_1 + co_spectrum2_2 + co_spectrum3_3) / 3
 avg_cross_spectrum = (cross_spectrum1_2 + cross_spectrum2_3) / 2
@@ -400,7 +399,8 @@ d_ky_max = np.pi / dy
 kx = np.linspace(-d_kx_max, d_kx_max, Nx)
 ky = np.linspace(-d_ky_max, d_ky_max, Ny) 
 
-def task_5B():    
+def task_5B():
+    """ Plot the co-spectra, cross-spectra and cross-sub1*sub3-spectra """
     figure, axes = plt.subplots(1, 3, figsize=(8, 6))
     axes[0].pcolormesh(kx, ky, np.log(np.abs(avg_co_spectrum)), cmap='gray', shading='nearest')
     axes[0].set_ylim(-0.1, 0.1)
@@ -431,13 +431,14 @@ def task_5B():
 """ ---------------------------------- C. Analysis of 2D Spectra ----------------------------------- """
 
 def task_1C():
+    """ Plot the real and imaginary part of the co-spectrum, cross-spectrum and cross-spectrum 1-3 """
     plt.subplot(2,3,1) 
     plt.pcolormesh(kx, ky, np.real(avg_co_spectrum), shading="gouraud")
     plt.xlim(-0.05, 0.05)
     plt.ylim(-0.05, 0.05)
     plt.title("Real part of Co-Spectrum")
     plt.xlabel("Range Wavenumber [rad/m]")
-    #plt.ylabel("Azimuth Wavenumber [rad/m]")
+    plt.ylabel("Azimuth Wavenumber [rad/m]")
     
     plt.subplot(2,3,4) 
     plt.pcolormesh(kx, ky, np.imag(avg_co_spectrum), shading="gouraud")
@@ -481,7 +482,6 @@ def task_1C():
     
     plt.tight_layout(pad=100)
     plt.show()
-    
     
     plt.subplot(1,3,1)
     plt.pcolormesh(kx, ky, np.imag(avg_co_spectrum), shading="gouraud")
