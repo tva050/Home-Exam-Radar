@@ -7,8 +7,8 @@ from scipy.stats import rayleigh, norm, gamma, expon, laplace
 
 
 # Paths to data and header file
-data_file = r"C:\Home exam active\image.dat"
-header_file = r"C:\Home exam active\image.txt"
+data_file = r"image.dat"
+header_file = r"image.txt"
 
 # Number of pixels from meta data 
 Ny = 1759
@@ -455,6 +455,7 @@ def task_1C():
     plt.title("Real part of Cross-Spectrum")
     plt.xlabel("Range Wavenumber [rad/m]")
     plt.ylabel("Azimuth Wavenumber [rad/m]")
+    plt.colorbar()
     
     plt.subplot(2,3,5)  
     plt.pcolormesh(kx, ky, np.imag(avg_cross_spectrum), shading="gouraud")
@@ -484,7 +485,7 @@ def task_1C():
     plt.show()
     
     plt.subplot(1,3,1)
-    plt.pcolormesh(kx, ky, np.imag(avg_co_spectrum), shading="gouraud")
+    plt.pcolormesh(kx, ky, np.imag(avg_co_spectrum))
     plt.xlim(-0.05, 0.05)
     plt.ylim(-0.05, 0.05)
     plt.title("Co-Spectrum")
@@ -492,7 +493,7 @@ def task_1C():
     plt.ylabel("Azimuth Wavenumber [rad/m]")
     
     plt.subplot(1,3,2)
-    plt.pcolormesh(kx, ky, np.imag(avg_cross_spectrum), shading="gouraud")
+    plt.pcolormesh(kx, ky, np.imag(avg_cross_spectrum))
     plt.xlim(-0.05, 0.05)
     plt.ylim(-0.05, 0.05)
     plt.title("Cross-Spectrum")
@@ -500,7 +501,7 @@ def task_1C():
     plt.ylabel("Azimuth Wavenumber [rad/m]")
     
     plt.subplot(1,3,3)
-    plt.pcolormesh(kx, ky, np.imag(cross_spectrum1_3), shading="gouraud")
+    plt.pcolormesh(kx, ky, np.imag(cross_spectrum1_3))
     plt.xlim(-0.05, 0.05)
     plt.ylim(-0.05, 0.05)
     plt.title("Cross-Spectrum 1-3")

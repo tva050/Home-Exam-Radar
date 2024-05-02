@@ -451,14 +451,14 @@ def task_5B():
 
 def task_1C():
     plt.subplot(1,2,1)
-    plt.pcolormesh(np.imag(avg_cross_spectrum))
+    plt.pcolormesh(kx, ky,np.imag(avg_cross_spectrum))
     plt.colorbar()
     plt.title("Imaginary part of Cross-Spectrum")
     plt.xlabel("Range Wavenumber [rad/m]")
     plt.ylabel("Azimuth Wavenumber [rad/m]")
     
     plt.subplot(1,2,2)
-    plt.pcolormesh(np.real(avg_cross_spectrum))
+    plt.pcolormesh(kx, ky, np.real(avg_cross_spectrum))
     plt.colorbar()
     plt.title("Real part of Cross-Spectrum")
     plt.xlabel("Range Wavenumber [rad/m]")
@@ -466,6 +466,18 @@ def task_1C():
 
     plt.tight_layout()
     plt.show()
+    
+    kx_2d, ky_2d = np.meshgrid(kx, ky)
+    # plot using surface plot
+    fig = plt.figure(figsize=(12, 6))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(kx_2d, ky_2d, np.real(avg_cross_spectrum) , cmap='viridis')
+    ax.set_xlabel('Range Wavenumber [rad/m]')
+    ax.set_ylabel('Azimuth Wavenumber [rad/m]')
+    ax.set_zlabel('Intensity')
+    ax.set_title('Cross-Spectrum')
+    plt.show()
+    
     
     
     """ plt.subplot(2,3,1) 
