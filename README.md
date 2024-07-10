@@ -1,5 +1,4 @@
 # Home Exam II: Radar
-FYS-3001
 Home_Exam_Active (2).pdf - Contains the completed project paper. 
 ### Objectives of the project work:
 - Get experience with complex SAR (Single-look complex (SLC)) data acquired over ocean surface
