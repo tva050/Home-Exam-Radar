@@ -1,0 +1,7 @@
+# Home Exam II: Radar
+FYS-3001
+### Objectives of the project work:
+- Get experience with complex SAR (Single-look complex (SLC)) data acquired over ocean surface
+- Get experienced with speckle theory and statistics of SAR data
+- Get experienced with look extraction from SAR SLC data
+- Get experienced with inform
